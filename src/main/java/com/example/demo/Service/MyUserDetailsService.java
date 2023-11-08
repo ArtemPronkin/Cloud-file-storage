@@ -26,22 +26,23 @@ public class MyUserDetailsService implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
-        return new MyPrincipal(user);
-//        return new org.springframework.security.core.userdetails.User(
-//                username,
-//                user.getPassword(),
-//                getAuthorities(user.getRoles())
-//        );
+    public User loadUserByEmail(String login) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(login).orElseThrow();
+        return user;
     }
 
-    public Collection<? extends GrantedAuthority> getAuthorities(Set<Role> roles) {
-        Set<SimpleGrantedAuthority> authorities = new HashSet<>();
-        for (Role role : roles) {
-            authorities.add(new SimpleGrantedAuthority(role.name()));
+
+    @Override
+    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
+//        var optionalUser = userRepository.findByUsername(login);
+//        if (optionalUser.isEmpty()){
+//            optionalUser = userRepository.findByEmail(login);
+//        }
+        var optionalUser = userRepository.findByEmailOrUsername(login,login);
+        if(optionalUser.isEmpty()){
+            throw new UsernameNotFoundException(login);
         }
-        return authorities;
+
+        return new MyPrincipal(optionalUser.get());
     }
 }

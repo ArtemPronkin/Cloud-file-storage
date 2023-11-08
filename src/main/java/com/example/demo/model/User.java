@@ -2,6 +2,7 @@ package com.example.demo.model;
 
 import com.example.demo.model.Role;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,10 @@ public class User {
     @NotBlank
     @Size(min = 3, max = 20)
     private String username;
+    @Column(unique = true)
+    @NotBlank
+    @Email(message = "Not valid Email")
+    private String email;
     @NotBlank
     private String password;
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER )

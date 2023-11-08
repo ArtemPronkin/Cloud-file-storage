@@ -23,7 +23,7 @@ public class UserValidator implements Validator {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             errors.rejectValue("email","","This email is already taken");
         }
-        if (userRepository.findByUsername(user.getEmail()).isPresent()) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             errors.rejectValue("username","","This username is already taken");
         }
     }

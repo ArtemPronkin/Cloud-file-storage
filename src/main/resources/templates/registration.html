@@ -22,16 +22,17 @@
                     You have been logged out.
                 </div>
 
-                <form th:action="@{/registration}" method="post" modelAttribute="user">
+                <form th:action="@{/registration}" th:object="${user}" method="post">
                     <div class="mb-3">
                         <label for="username" class="form-label">Email address</label>
-                        <input name="username" type="text" class="form-control" id="username" path="username"
+                        <input name="username" type="text" class="form-control" id="username" required th:field="*{username}"
                                aria-describedby="emailHelp">
 
                     </div>
+                    <p class="text-danger" th:if="errorLogin" th:text="${errorLogin}"></p>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
-                        <input name="password" type="password" class="form-control" id="password" path="password">
+                        <input name="password" type="password" class="form-control" id="password" required th:field="*{password}">
                     </div>
 
                     <button type="submit" class="btn btn-primary">New profile</button>

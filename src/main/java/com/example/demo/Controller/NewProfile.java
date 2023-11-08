@@ -1,13 +1,13 @@
 package com.example.demo.Controller;
 
 
-import com.example.demo.InvalidUserRegistrationRequestException;
 import com.example.demo.model.Role;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.model.User;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,23 +26,27 @@ public class NewProfile {
     private PasswordEncoder passwordEncoder;
 
     @GetMapping("/registration")
-    String showRegPage() {
+    String showRegPage(@ModelAttribute("user") User user) {
 
         return "registration";
     }
 
     @PostMapping("/registration")
-    RedirectView createNewProfile(@ModelAttribute("user") User user,
+    String createNewProfile(@ModelAttribute("user") @Valid  User user,
                                   BindingResult bindingResult,
                                   RedirectAttributes redirectAttributes,
-                                  ModelMap modelMap) {
+                                  Model model) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new InvalidUserRegistrationRequestException("User already exists");
+            model.addAttribute("errorLogin","User exists");
+            return "registration";
         }
-        user.setActive(true);
-        user.setRoles(Collections.singleton(Role.USER));
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("errorLogin","Not valid");
+            return "registration";
+        }
+        user.setRoles(Collections.singleton(Role.ROLE_USER));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
-        return new RedirectView("/login");
+        return "redirect:/login";
     }
 }

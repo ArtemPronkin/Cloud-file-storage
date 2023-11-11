@@ -8,14 +8,15 @@
     <title>Login</title>
 </head>
 <body>
-<form method="POST" th:action="@{/storage/putFile}"
+<form th:method="POST" th:action="@{/storage/putFile}"
+
       enctype="multipart/form-data">
     <table>
         <tr>
             <td>Select a file to upload</td>
             <td><input type="file" name="file"/></td>
         </tr>
-        <input type="hidden" name="path" value = "test/" />
+        <input type="hidden" name="path" th:value="${path}" />
         <tr>
             <td><input type="submit" value="Submit"/></td>
         </tr>

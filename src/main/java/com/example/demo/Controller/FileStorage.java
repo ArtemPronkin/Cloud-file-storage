@@ -30,6 +30,7 @@ public class FileStorage {
     String storage(@AuthenticationPrincipal MyPrincipal user, Model model, @RequestParam Optional<String> path) {
         var list = minioService.listPathObjects(minioService.generateStorageName(user.getId()),path.orElse(""));
         model.addAttribute("objectList", list);
+        model.addAttribute("path", path.orElse(""));
         log.info(path.orElse("nothing"));
         return "storage";
     }
@@ -46,9 +47,11 @@ public class FileStorage {
         }
     }
 
-    @PostMapping("putFile")
+    @PostMapping("/putFile")
     String putFile(@AuthenticationPrincipal MyPrincipal user,@RequestParam("file") MultipartFile file,@RequestParam Optional<String> path) throws IOException {
+        log.info("put on " + path.orElse("/"));
         minioService.putObject(minioService.generateStorageName(user.getId()),path.orElse("") + file.getOriginalFilename(), file.getContentType(), file.getInputStream());
+
         return "redirect:/storage";
     }
     @GetMapping(value = "/delete")

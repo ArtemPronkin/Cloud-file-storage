@@ -16,7 +16,7 @@
             <td>Select a file to upload</td>
             <td><input type="file" name="file"/></td>
         </tr>
-        <input type="hidden" name="path" th:value="${path}" />
+        <input type="hidden" name="path" th:value="${path}"/>
         <tr>
             <td><input type="submit" value="Submit"/></td>
         </tr>
@@ -28,7 +28,7 @@
         <label>Введите имя
             <input type="text" name="folderName">
         </label>
-        <input type="hidden" name="path" th:value="${path}" />
+        <input type="hidden" name="path" th:value="${path}"/>
         <tr>
             <td><input type="submit" value="Submit"/></td>
         </tr>
@@ -40,8 +40,8 @@
     <div th:if="${object.get().isDir()}">
         <p>
             <a th:href="@{'/storage?path='+${object.get().objectName()}}">
-            <span th:text="${object.get().objectName()}"></span>
-        </a>
+                <span th:text="${object.get().objectName()}"></span>
+            </a>
             <a th:href="@{'/storage/deleteFolder?folderName='+${object.get().objectName()}}"><span>  delete folder</span></a>
         </p>
     </div>
@@ -50,11 +50,13 @@
 
 <div th:each="object : ${objectList}">
     <div th:if="${!object.get().isDir()}">
-        <p><a th:href="@{'/storage/download?fileName='+${object.get().objectName()}}">
-            <span th:text="${object.get().objectName()}"></span>
-        </a>
-            <a th:href="@{'/storage/delete?fileName='+${object.get().objectName()}}"><span>  delete</span></a>
-        </p>
+        <div th:if="${object.get().size()!=0}">
+            <p><a th:href="@{'/storage/download?fileName='+${object.get().objectName()}}">
+                <span th:text="${object.get().objectName()}"></span>
+            </a>
+                <a th:href="@{'/storage/delete?fileName='+${object.get().objectName()}}"><span>  delete</span></a>
+            </p>
+        </div>
     </div>
 </div>
 

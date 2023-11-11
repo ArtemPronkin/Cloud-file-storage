@@ -48,10 +48,15 @@ public class FileStorage {
     }
 
     @PostMapping("/putFile")
-    String putFile(@AuthenticationPrincipal MyPrincipal user,@RequestParam("file") MultipartFile file,@RequestParam Optional<String> path) throws IOException {
+    String putFile(@AuthenticationPrincipal MyPrincipal user,@RequestParam("file") MultipartFile[] files,@RequestParam Optional<String> path){
         log.info("put on " + path.orElse("/"));
-        minioService.putObject(minioService.generateStorageName(user.getId()),path.orElse("") + file.getOriginalFilename(), file.getContentType(), file.getInputStream());
-
+        minioService.putArrayObjects(minioService.generateStorageName(user.getId()),files,path.orElse(""));
+        return "redirect:/storage";
+    }
+    @PostMapping("/putFolder")
+    String putFolder(@AuthenticationPrincipal MyPrincipal user,@RequestParam("file") MultipartFile[] files,@RequestParam Optional<String> path){
+        log.info("put on " + path.orElse("/"));
+        minioService.putFolder(minioService.generateStorageName(user.getId()),files,path.orElse(""));
         return "redirect:/storage";
     }
     @GetMapping(value = "/delete")
@@ -70,9 +75,15 @@ public class FileStorage {
         return "redirect:/storage";
     }
 
-    @PostMapping("createFolder")
+    @PostMapping("/createFolder")
     String createFolder(@AuthenticationPrincipal MyPrincipal user,@RequestParam("folderName") String folderName , @RequestParam Optional<String> path) throws IOException {
         minioService.createFolder(minioService.generateStorageName(user.getId()),path.orElse("")+folderName);
+        return "redirect:/storage";
+    }
+    @PostMapping("/transferFile")
+    String transferFile(@AuthenticationPrincipal MyPrincipal user,@RequestParam String fileName,
+                        @RequestParam Optional<String> path,@RequestParam Optional<String> folderName){
+        minioService.transferObject(minioService.generateStorageName(user.getId()),fileName ,folderName.orElse("")+"/");
         return "redirect:/storage";
     }
 

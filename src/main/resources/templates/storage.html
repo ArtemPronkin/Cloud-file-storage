@@ -13,24 +13,31 @@
       enctype="multipart/form-data">
     <table>
         <tr>
-            <td>Select a file to upload</td>
-            <td><input type="file" name="file"/></td>
+            <td>Выберите файлы для загрузки</td>
+            <td><input type="file" name="file" multiple accept=""></td>
         </tr>
         <input type="hidden" name="path" th:value="${path}"/>
         <tr>
-            <td><input type="submit" value="Submit"/></td>
+            <td><input type="submit" value="Отправить файлы"/></td>
         </tr>
     </table>
 </form>
-<form method="POST" th:action="@{/storage/createFolder}">
+
+<form method="post" enctype="multipart/form-data" th:action="@{/storage/putFolder}">
+    <input type="file" name="file" id="files" multiple="" directory="" webkitdirectory="" mozdirectory="">
+    <input type="hidden" name="path" th:value="${path}"/>
+    <input class="button" type="submit" value="Отправить папку"/>
+</form>
+
+<form th:method="POST" th:action="@{/storage/createFolder}">
 
     <table>
-        <label>Введите имя
+        <label>Создать новую папку
             <input type="text" name="folderName">
         </label>
         <input type="hidden" name="path" th:value="${path}"/>
         <tr>
-            <td><input type="submit" value="Submit"/></td>
+            <td><input type="submit" value="Создать"/></td>
         </tr>
     </table>
 </form>
@@ -56,6 +63,19 @@
             </a>
                 <a th:href="@{'/storage/delete?fileName='+${object.get().objectName()}}"><span>  delete</span></a>
             </p>
+
+            <form th:method="POST" th:action="@{/storage/transferFile}">
+                <input type="hidden" name="path" th:value="${path}"/>
+                <input type="hidden" name="fileName" th:value="${object.get().objectName()}"/>
+                <p>
+                    <label>Имя новой папки
+                        <input name="folderName" type="text" th:value="${path}">
+                    </label>
+                </p>
+
+                <input class="button" type="submit" value="Перенести файл"/>
+            </form>
+
         </div>
     </div>
 </div>

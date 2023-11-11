@@ -9,12 +9,14 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,7 +35,8 @@ public class MinioService {
                 ListObjectsArgs.builder().bucket(name).build());
         return results;
     }
-    public Iterable<Result<Item>> listPathObjects(String name,String path) {
+
+    public Iterable<Result<Item>> listPathObjects(String name, String path) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(name)
@@ -57,7 +60,18 @@ public class MinioService {
                 log.info("Bucket " + name + " already exists.");
             }
         } catch (Exception e) {
-            log.info(e.getMessage());
+            log.info("makeBucket : " + e.getMessage());
+        }
+    }
+
+    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) {
+        try {
+            for (MultipartFile file :
+                    multipartFiles) {
+                putObject(bucketName, path + file.getOriginalFilename(), file.getContentType(), file.getInputStream());
+            }
+        } catch (Exception e) {
+            log.info("putArrayObjects : " + e.getMessage());
         }
     }
 
@@ -69,7 +83,7 @@ public class MinioService {
                             .contentType(contentType)
                             .build());
         } catch (Exception e) {
-            log.info(e.getMessage());
+            log.info("put Object : " + e.getMessage());
         }
     }
 
@@ -81,7 +95,7 @@ public class MinioService {
                             .object(objectName)
                             .build());
         } catch (Exception e) {
-            log.info(e.getMessage());
+            log.info("get Object : " +e.getMessage());
             return null;
         }
     }
@@ -91,7 +105,7 @@ public class MinioService {
             minioClient.removeObject(
                     RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
         } catch (Exception e) {
-            log.info(e.getMessage());
+            log.info("deleteObject : " + e.getMessage());
         }
     }
 
@@ -102,11 +116,11 @@ public class MinioService {
                                     new ByteArrayInputStream(new byte[]{}), 0, -1)
                             .build());
         } catch (Exception e) {
-            log.info(e.getMessage());
+            log.info("create Folder : " + e.getMessage());
         }
     }
 
-    public void deleteFolder(String bucketName, String folderName){
+    public void deleteFolder(String bucketName, String folderName) {
         try {
             List<DeleteObject> objects = new LinkedList<>();
             Iterable<Result<Item>> list = listPathObjects(bucketName, folderName);
@@ -123,9 +137,47 @@ public class MinioService {
                 log.info(
                         "Error in deleting object " + error.objectName() + "; " + error.message());
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.info(e.getMessage());
         }
+    }
+
+    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) {
+        try {
+            String folderName = Arrays.stream(multipartFiles).findFirst().get().getOriginalFilename();
+            createFolder(bucketName,folderName.substring(0,folderName.indexOf("/")));
+            for (MultipartFile file :
+                    multipartFiles) {
+                putObject(bucketName, path + file.getOriginalFilename(), file.getContentType(), file.getInputStream());
+            }
+        } catch (Exception e) {
+            log.info("Put Folder : " + e.getMessage());
+        }
+    }
+
+    public void copyObject(String bucketName, String objectName, String objectNameSource) {
+        try {
+            minioClient.copyObject(
+                    CopyObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .source(
+                                    CopySource.builder()
+                                            .bucket(bucketName)
+                                            .object(objectNameSource)
+                                            .build())
+                            .build());
+        } catch (Exception e) {
+            log.info("CopyObject " + e.getMessage());
+        }
+    }
+
+    public void transferObject(String bucketName, String objectNameSource, String folderName) {
+        createFolder(bucketName,folderName);
+        String nameFile = objectNameSource.substring(objectNameSource.lastIndexOf("/")+1);
+        log.info(objectNameSource +" transfer to " +folderName + nameFile);
+        copyObject(bucketName, folderName + nameFile, objectNameSource);
+        deleteObject(bucketName, objectNameSource);
     }
 }
 

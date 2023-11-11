@@ -47,8 +47,8 @@ public class Registration {
         }
         user.setRoles(Collections.singleton(Role.ROLE_USER));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        minioService.makeBucket(user.getUsername());
+        user = userRepository.save(user);
+        minioService.makeBucket(minioService.generateStorageName(user.getId()));
         return "redirect:/login";
     }
 }

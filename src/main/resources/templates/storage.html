@@ -8,22 +8,48 @@
     <title>Login</title>
 </head>
 <body>
-<form method="POST" th:action="@{/storage}"
+<form method="POST" th:action="@{/storage/putFile}"
       enctype="multipart/form-data">
     <table>
         <tr>
             <td>Select a file to upload</td>
             <td><input type="file" name="file"/></td>
         </tr>
+        <input type="hidden" name="path" value = "test/" />
         <tr>
             <td><input type="submit" value="Submit"/></td>
         </tr>
     </table>
 </form>
+<form method="POST" th:action="@{/storage/createFolder}">
 
+    <table>
+        <label>Введите имя
+            <input type="text" name="folderName">
+        </label>
+        <tr>
+            <td><input type="submit" value="Submit"/></td>
+        </tr>
+    </table>
+</form>
 <div th:each="object : ${objectList}">
-    <p><a th:href="@{'/storage/'+${object.get().objectName()}}"><span  th:text="${object.get().objectName()}"></span></a>
-    </p>
+    <div th:if="${object.get().isDir()}">
+        <p>
+            <a th:href="@{'/storage?path='+${object.get().objectName()}}">
+            <span th:text="${object.get().objectName()}"></span>
+        </a>
+            <a th:href="@{'/storage/delete/'+${object.get().objectName()}}"><span>  delete</span></a>
+        </p>
+    </div>
+</div>
+<div th:each="object : ${objectList}">
+    <div th:if="${!object.get().isDir()}">
+        <p><a th:href="@{'/storage/download?fileName='+${object.get().objectName()}}">
+            <span th:text="${object.get().objectName()}"></span>
+        </a>
+            <a th:href="@{'/storage/delete?fileName='+${object.get().objectName()}}"><span>  delete</span></a>
+        </p>
+    </div>
 </div>
 
 </body>

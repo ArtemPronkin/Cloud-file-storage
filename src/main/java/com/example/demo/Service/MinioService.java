@@ -20,9 +20,23 @@ public class MinioService {
     @Autowired
     MinioClient minioClient;
 
+    public String generateStorageName(long id) {
+        return "user-" + id + "-files";
+    }
+
     public Iterable<Result<Item>> listObjects(String name) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder().bucket(name).build());
+        return results;
+    }
+    public Iterable<Result<Item>> listPathObjects(String name,String path) {
+        Iterable<Result<Item>> results = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(name)
+                        .startAfter("")
+                        .prefix(path)
+                        .maxKeys(100)
+                        .build());
         return results;
     }
 
@@ -54,36 +68,39 @@ public class MinioService {
             log.info(e.getMessage());
         }
     }
-    public InputStream  getObject(String bucketName, String objectName){
+
+    public InputStream getObject(String bucketName, String objectName) {
         try {
             return minioClient.getObject(
                     GetObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectName)
                             .build());
-        }catch (Exception e){
+        } catch (Exception e) {
             log.info(e.getMessage());
             return null;
         }
     }
-    @SneakyThrows
-    public void putFolder(String bucketName, String path) {
-        minioClient.putObject(
-                PutObjectArgs.builder().bucket(bucketName).object(path).stream(
-                                new ByteArrayInputStream(new byte[]{}), 0, -1)
-                        .build());
+
+    public void deleteObject(String bucketName, String objectName) {
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
+        } catch (Exception e) {
+            log.info(e.getMessage());
+        }
     }
 
-    @SneakyThrows
-    public void upload(String bucketName, String fileName, byte[] file) {
-        minioClient.uploadObject(
-                UploadObjectArgs.builder()
-                        .bucket("asiatrip")
-                        .object("asiaphotos-2015.zip")
-                        .filename("/home/user/Photos/asiaphotos.zip")
-                        .build());
+    public void createFolder(String bucketName, String folderName) {
+        try {
+            minioClient.putObject(
+                    PutObjectArgs.builder().bucket(bucketName).object(folderName + "/").stream(
+                                    new ByteArrayInputStream(new byte[]{}), 0, -1)
+                            .build());
+        } catch (Exception e) {
+            log.info(e.getMessage());
+        }
     }
-
 }
 
 

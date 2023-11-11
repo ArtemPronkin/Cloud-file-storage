@@ -1,6 +1,7 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Service.MinioService;
+import com.example.demo.Service.MyPrincipal;
 import io.minio.Result;
 import io.minio.messages.Item;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 @Controller
@@ -25,18 +27,18 @@ public class FileStorage {
     MinioService minioService;
 
     @GetMapping
-    String getStorage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-
-        var list = minioService.listObjects(userDetails.getUsername());
+    String storage(@AuthenticationPrincipal MyPrincipal user, Model model, @RequestParam Optional<String> path) {
+        var list = minioService.listPathObjects(minioService.generateStorageName(user.getId()),path.orElse(""));
         model.addAttribute("objectList", list);
+        log.info(path.orElse("nothing"));
         return "storage";
     }
 
-    @GetMapping(value = "/{fileName}")
-    void getStorage(@AuthenticationPrincipal UserDetails userDetails, Model model, @PathVariable String fileName, HttpServletResponse response) {
+    @GetMapping(value = "/download")
+    void getFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, HttpServletResponse response) {
         response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
         response.setStatus(HttpServletResponse.SC_OK);
-        var file = minioService.getObject(userDetails.getUsername(), fileName);
+        var file = minioService.getObject(minioService.generateStorageName(user.getId()), fileName);
         try {
             FileCopyUtils.copy(file, response.getOutputStream());
         } catch (IOException e) {
@@ -44,11 +46,27 @@ public class FileStorage {
         }
     }
 
-    @PostMapping()
-    String postStorage(@AuthenticationPrincipal UserDetails userDetails,
-                       String command, String name, @RequestParam("file") MultipartFile file) throws IOException {
-        minioService.putObject(userDetails.getUsername(), file.getOriginalFilename(), file.getContentType(), file.getInputStream());
+    @PostMapping("putFile")
+    String putFile(@AuthenticationPrincipal MyPrincipal user,@RequestParam("file") MultipartFile file,@RequestParam Optional<String> path) throws IOException {
+        minioService.putObject(minioService.generateStorageName(user.getId()),path.orElse("") + file.getOriginalFilename(), file.getContentType(), file.getInputStream());
         return "redirect:/storage";
     }
+    @GetMapping(value = "/delete")
+    String deleteFile(@AuthenticationPrincipal MyPrincipal user,@RequestParam String fileName){
+        minioService.deleteObject(minioService.generateStorageName(user.getId()), fileName);
+        return "redirect:/storage";
+    }
+    @GetMapping(value = "/delete/{fileName}/")
+    String deleteFolder(@AuthenticationPrincipal MyPrincipal user,@PathVariable String fileName){
+        minioService.deleteObject(minioService.generateStorageName(user.getId()), fileName+"/");
+        return "redirect:/storage";
+    }
+
+    @PostMapping("createFolder")
+    String createFolder(@AuthenticationPrincipal MyPrincipal user,@RequestParam("folderName") String folderName , @RequestParam Optional<String> path) throws IOException {
+        minioService.createFolder(minioService.generateStorageName(user.getId()),path.orElse("")+folderName);
+        return "redirect:/storage";
+    }
+
 
 }

@@ -26,6 +26,9 @@ public class MyPrincipal implements UserDetails {
         }
         return authorities;
     }
+    public long getId(){
+        return user.getId();
+    }
 
     @Override
     public String getPassword() {

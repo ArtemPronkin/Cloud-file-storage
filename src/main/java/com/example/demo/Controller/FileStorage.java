@@ -64,6 +64,11 @@ public class FileStorage {
         minioService.deleteObject(minioService.generateStorageName(user.getId()), fileName+"/");
         return "redirect:/storage";
     }
+    @GetMapping(value = "/deleteFolder")
+    String deleteAllFileInFolder(@AuthenticationPrincipal MyPrincipal user,@RequestParam("folderName") String folderName){
+        minioService.deleteFolder(minioService.generateStorageName(user.getId()), folderName);
+        return "redirect:/storage";
+    }
 
     @PostMapping("createFolder")
     String createFolder(@AuthenticationPrincipal MyPrincipal user,@RequestParam("folderName") String folderName , @RequestParam Optional<String> path) throws IOException {

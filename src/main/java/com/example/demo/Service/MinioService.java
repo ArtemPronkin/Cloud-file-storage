@@ -2,6 +2,8 @@ package com.example.demo.Service;
 
 import io.minio.*;
 import io.minio.errors.*;
+import io.minio.messages.DeleteError;
+import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.LinkedList;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -98,6 +102,28 @@ public class MinioService {
                                     new ByteArrayInputStream(new byte[]{}), 0, -1)
                             .build());
         } catch (Exception e) {
+            log.info(e.getMessage());
+        }
+    }
+
+    public void deleteFolder(String bucketName, String folderName){
+        try {
+            List<DeleteObject> objects = new LinkedList<>();
+            Iterable<Result<Item>> list = listPathObjects(bucketName, folderName);
+            for (Result<Item> cur :
+                    list) {
+                objects.add(new DeleteObject(cur.get().objectName()));
+            }
+
+            Iterable<Result<DeleteError>> results =
+                    minioClient.removeObjects(
+                            RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
+            for (Result<DeleteError> result : results) {
+                DeleteError error = result.get();
+                log.info(
+                        "Error in deleting object " + error.objectName() + "; " + error.message());
+            }
+        }catch (Exception e){
             log.info(e.getMessage());
         }
     }

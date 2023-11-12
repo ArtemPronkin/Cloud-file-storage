@@ -26,18 +26,19 @@ public class MyPrincipal implements UserDetails {
         }
         return authorities;
     }
-    public long getId(){
+
+    public long getId() {
         return user.getId();
     }
 
     @Override
     public String getPassword() {
-      return   user.getPassword();
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-       return user.getUsername();
+        return user.getUsername();
     }
 
     @Override

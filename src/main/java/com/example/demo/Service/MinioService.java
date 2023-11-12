@@ -1,27 +1,19 @@
 package com.example.demo.Service;
 
 import io.minio.*;
-import io.minio.errors.*;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Component
@@ -55,10 +47,16 @@ public class MinioService {
         boolean found =
                 false;
         try {
-            found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(name).build());
+            found = minioClient.bucketExists(BucketExistsArgs
+                    .builder()
+                    .bucket(name)
+                    .build());
 
             if (!found) {
-                minioClient.makeBucket(MakeBucketArgs.builder().bucket(name).build());
+                minioClient.makeBucket(MakeBucketArgs
+                        .builder()
+                        .bucket(name)
+                        .build());
             } else {
                 log.info("Bucket " + name + " already exists.");
             }
@@ -69,9 +67,12 @@ public class MinioService {
 
     public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) {
         try {
-            for (MultipartFile file :
-                    multipartFiles) {
-                putObject(bucketName, path + file.getOriginalFilename(), file.getContentType(), file.getInputStream());
+            for (MultipartFile file
+                    : multipartFiles) {
+                putObject(bucketName,
+                        path + file.getOriginalFilename(),
+                        file.getContentType(),
+                        file.getInputStream());
             }
         } catch (Exception e) {
             log.info("putArrayObjects : " + e.getMessage());
@@ -149,17 +150,24 @@ public class MinioService {
         try {
             for (MultipartFile file :
                     multipartFiles) {
+
                 String fullPathName = file.getOriginalFilename();
+
                 var folderPath = "";
-                var filename = fullPathName.substring(fullPathName.lastIndexOf("/")+1);
+                var filename = fullPathName.substring(fullPathName.lastIndexOf("/") + 1);
+
                 while (!fullPathName.equals(filename)) {
+
                     var tk = new StringTokenizer(fullPathName, "/");
                     folderPath = folderPath + tk.nextToken() + "/";
-                    System.out.println(folderPath);
-                    fullPathName = fullPathName.substring(fullPathName.indexOf("/")+1);
-                    createFolder(bucketName,folderPath);
+                    fullPathName = fullPathName.substring(fullPathName.indexOf("/") + 1);
+
+                    createFolder(bucketName, folderPath);
                 }
-                putObject(bucketName, path + file.getOriginalFilename(), file.getContentType(), file.getInputStream());
+                putObject(bucketName,
+                        path + file.getOriginalFilename(),
+                        file.getContentType(),
+                        file.getInputStream());
             }
         } catch (Exception e) {
             log.info("Put Folder : " + e.getMessage());
@@ -186,9 +194,11 @@ public class MinioService {
     public void transferObject(String bucketName, String objectNameSource, String folderName) {
         createFolder(bucketName, folderName);
         String nameFile = objectNameSource.substring(objectNameSource.lastIndexOf("/") + 1);
-        log.info(objectNameSource + " transfer to " + folderName + nameFile);
+
         copyObject(bucketName, folderName + nameFile, objectNameSource);
         deleteObject(bucketName, objectNameSource);
+
+        log.info(objectNameSource + " transfer to " + folderName + nameFile);
     }
 }
 

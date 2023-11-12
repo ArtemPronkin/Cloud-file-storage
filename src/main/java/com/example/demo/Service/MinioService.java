@@ -68,7 +68,7 @@ public class MinioService {
                 log.info("Bucket " + name + " already exists.");
             }
         } catch (Exception e) {
-            log.info("makeBucket : " + e.getMessage());
+            log.warn("makeBucket : " + e.getMessage());
         }
     }
 
@@ -82,7 +82,7 @@ public class MinioService {
                         file.getInputStream());
             }
         } catch (Exception e) {
-            log.info("putArrayObjects : " + e.getMessage());
+            log.warn("putArrayObjects : " + e.getMessage());
         }
     }
 
@@ -94,7 +94,7 @@ public class MinioService {
                             .contentType(contentType)
                             .build());
         } catch (Exception e) {
-            log.info("put Object : " + e.getMessage());
+            log.warn("put Object : " + e.getMessage());
         }
     }
 
@@ -106,7 +106,7 @@ public class MinioService {
                             .object(objectName)
                             .build());
         } catch (Exception e) {
-            log.info("get Object : " + e.getMessage());
+            log.warn("get Object : " + e.getMessage());
             return null;
         }
     }
@@ -116,7 +116,7 @@ public class MinioService {
             minioClient.removeObject(
                     RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
         } catch (Exception e) {
-            log.info("deleteObject : " + e.getMessage());
+            log.warn("deleteObject : " + e.getMessage());
         }
     }
 
@@ -127,7 +127,7 @@ public class MinioService {
                                     new ByteArrayInputStream(new byte[]{}), 0, -1)
                             .build());
         } catch (Exception e) {
-            log.info("create Folder : " + e.getMessage());
+            log.warn("create Folder : " + e.getMessage());
         }
     }
 
@@ -153,7 +153,7 @@ public class MinioService {
             }
             return result;
         } catch (Exception e) {
-            log.info("findAllObjectInFolder :" + e.getMessage());
+            log.warn("findAllObjectInFolder :" + e.getMessage());
         }
         return null;
     }
@@ -170,14 +170,28 @@ public class MinioService {
                             RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
             for (Result<DeleteError> result : results) {
                 DeleteError error = result.get();
-                log.info(
+                log.warn(
                         "Error in deleting object " + error.objectName() + "; " + error.message());
             }
         } catch (
                 Exception e) {
-            log.info("deleteFolder :" + e.getMessage());
+            log.warn("deleteFolder :" + e.getMessage());
         }
 
+    }
+
+    public void createFoldersForPath(String bucketName, String fullPathName) {
+        var folderPath = "";
+        var filename = fullPathName.substring(fullPathName.lastIndexOf("/") + 1);
+
+        while (!fullPathName.equals(filename)) {
+
+            var tk = new StringTokenizer(fullPathName, "/");
+            folderPath = folderPath + tk.nextToken() + "/";
+            fullPathName = fullPathName.substring(fullPathName.indexOf("/") + 1);
+
+            createFolder(bucketName, folderPath);
+        }
     }
 
     public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) {
@@ -187,24 +201,14 @@ public class MinioService {
 
                 String fullPathName = file.getOriginalFilename();
 
-                var folderPath = "";
-                var filename = fullPathName.substring(fullPathName.lastIndexOf("/") + 1);
-
-                while (!fullPathName.equals(filename)) {
-
-                    var tk = new StringTokenizer(fullPathName, "/");
-                    folderPath = folderPath + tk.nextToken() + "/";
-                    fullPathName = fullPathName.substring(fullPathName.indexOf("/") + 1);
-
-                    createFolder(bucketName, folderPath);
-                }
+                createFoldersForPath(bucketName, fullPathName);
                 putObject(bucketName,
                         path + file.getOriginalFilename(),
                         file.getContentType(),
                         file.getInputStream());
             }
         } catch (Exception e) {
-            log.info("Put Folder : " + e.getMessage());
+            log.warn("Put Folder : " + e.getMessage());
         }
     }
 
@@ -221,15 +225,16 @@ public class MinioService {
                                             .build())
                             .build());
         } catch (Exception e) {
-            log.info("CopyObject " + e.getMessage());
+            log.warn("CopyObject " + e.getMessage());
         }
     }
 
     public void transferObject(String bucketName, String objectNameSource, String folderName) {
         createFolder(bucketName, folderName);
         String nameFile = objectNameSource.substring(objectNameSource.lastIndexOf("/") + 1);
-
-        copyObject(bucketName, folderName + nameFile, objectNameSource);
+        var fullNewPathName = folderName + nameFile;
+        createFoldersForPath(bucketName, fullNewPathName);
+        copyObject(bucketName, fullNewPathName, objectNameSource);
         deleteObject(bucketName, objectNameSource);
 
         log.info(objectNameSource + " transfer to " + folderName + nameFile);
@@ -247,13 +252,14 @@ public class MinioService {
             var findList = findAllObjectInFolder(bucketName, folderName, "");
             for (Result<Item> itemResult : findList) {
                 var sourceName = itemResult.get().objectName();
-                var nameNew = path + folderNameNew + sourceName.substring(folderName.length());
+                var nameNew = folderNameNew + sourceName.substring(folderName.length());
+                createFoldersForPath(bucketName, nameNew);
                 log.info("sn " + sourceName);
                 log.info("nn " + nameNew);
                 renameObject(bucketName, itemResult.get().objectName(), nameNew);
             }
         } catch (Exception e) {
-            log.info("renameFolder : " + e.getMessage());
+            log.warn("renameFolder : " + e.getMessage());
         }
     }
 }

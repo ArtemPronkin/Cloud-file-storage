@@ -1,41 +1,41 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
 <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" rel="stylesheet">
 
     <meta charset="UTF-8">
     <title>Login</title>
 </head>
 <body>
-<form th:method="POST" th:action="@{/storage/putFile}"
+<form enctype="multipart/form-data" th:action="@{/storage/putFile}"
 
-      enctype="multipart/form-data">
+      th:method="POST">
     <table>
         <tr>
             <td>Выберите файлы для загрузки</td>
-            <td><input type="file" name="file" multiple accept=""></td>
+            <td><input accept="" multiple name="file" type="file"></td>
         </tr>
-        <input type="hidden" name="path" th:value="${path}"/>
+        <input name="path" th:value="${path}" type="hidden"/>
         <tr>
             <td><input type="submit" value="Отправить файлы"/></td>
         </tr>
     </table>
 </form>
 
-<form method="post" enctype="multipart/form-data" th:action="@{/storage/putFolder}">
-    <input type="file" name="file" id="files" multiple="" directory="" webkitdirectory="" mozdirectory="">
-    <input type="hidden" name="path" th:value="${path}"/>
+<form enctype="multipart/form-data" method="post" th:action="@{/storage/putFolder}">
+    <input directory="" id="files" mozdirectory="" multiple="" name="file" type="file" webkitdirectory="">
+    <input name="path" th:value="${path}" type="hidden"/>
     <input class="button" type="submit" value="Отправить папку"/>
 </form>
 
-<form th:method="POST" th:action="@{/storage/createFolder}">
+<form th:action="@{/storage/createFolder}" th:method="POST">
 
     <table>
         <label>Создать новую папку
-            <input type="text" name="folderName">
+            <input name="folderName" type="text">
         </label>
-        <input type="hidden" name="path" th:value="${path}"/>
+        <input name="path" th:value="${path}" type="hidden"/>
         <tr>
             <td><input type="submit" value="Создать"/></td>
         </tr>
@@ -50,6 +50,23 @@
                 <span th:text="${object.get().objectName()}"></span>
             </a>
             <a th:href="@{'/storage/deleteFolder?folderName='+${object.get().objectName()}}"><span>  delete folder</span></a>
+
+        <form th:action="@{/storage/renameFolder}" th:method="POST">
+            <p>
+
+                <input name="path" th:value="${path}" type="hidden"/>
+                <input name="folderName" th:value="${object.get().objectName()}" type="hidden"/>
+
+                <label>Новое имя
+                    <input name="folderNameNew"
+                           th:value="${object.get().objectName()}"
+                           type="text">
+                </label>
+
+                <input class="button" type="submit" value="Переименовать папку"/>
+
+            </p>
+        </form>
         </p>
     </div>
 </div>
@@ -57,24 +74,48 @@
 
 <div th:each="object : ${objectList}">
     <div th:if="${!object.get().isDir()}">
-        <div th:if="${object.get().size()!=0}">
-            <p><a th:href="@{'/storage/download?fileName='+${object.get().objectName()}}">
-                <span th:text="${object.get().objectName()}"></span>
+        <div th:if="${!object.get().objectName().equals(path)}">
+            <a th:href="@{'/storage/download?fileName='+${object.get().objectName()}}">
+                <span th:text="${object.get().objectName().substring(object.get().objectName().lastIndexOf('/')+1)}"></span>
             </a>
-                <a th:href="@{'/storage/delete?fileName='+${object.get().objectName()}}"><span>  delete</span></a>
-            </p>
 
-            <form th:method="POST" th:action="@{/storage/transferFile}">
-                <input type="hidden" name="path" th:value="${path}"/>
-                <input type="hidden" name="fileName" th:value="${object.get().objectName()}"/>
-                <p>
-                    <label>Имя новой папки
-                        <input name="folderName" type="text" th:value="${path}">
-                    </label>
-                </p>
+            <a th:href="@{'/storage/delete?fileName='+${object.get().objectName()}}"><span>  delete</span></a>
+
+
+
+            <form th:action="@{/storage/transferFile}" th:method="POST">
+
+                <input name="path" th:value="${path}" type="hidden"/>
+                <input name="fileName"
+                       th:value="${object.get().objectName()}"
+                       type="hidden"/>
+
+                <label>Имя новой папки
+                    <input name="folderName" th:value="${path}" type="text">
+                </label>
+
 
                 <input class="button" type="submit" value="Перенести файл"/>
+
             </form>
+            </p>
+            <form th:action="@{/storage/renameFile}" th:method="POST">
+
+
+                <input name="path" th:value="${path}" type="hidden"/>
+                <input name="fileName" th:value="${object.get().objectName()}" type="hidden"/>
+
+                <label>Новое имя
+                    <input name="fileNameNew"
+                           th:value="${object.get().objectName().substring(object.get().objectName().lastIndexOf('/')+1)}"
+                           type="text">
+                </label>
+
+                <input class="button" type="submit" value="Переименовать файл"/>
+
+
+            </form>
+
 
         </div>
     </div>

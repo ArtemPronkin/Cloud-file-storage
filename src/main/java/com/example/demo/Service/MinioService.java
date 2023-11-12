@@ -11,9 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -32,14 +30,23 @@ public class MinioService {
     }
 
     public Iterable<Result<Item>> listPathObjects(String name, String path) {
-        Iterable<Result<Item>> results = minioClient.listObjects(
+        return minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(name)
                         .startAfter("")
                         .prefix(path)
                         .maxKeys(100)
                         .build());
-        return results;
+    }
+
+    public Iterable<Result<Item>> listObjectsInFolder(String name, String foldername, String path) {
+        return minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(name)
+                        .startAfter(path)
+                        .prefix(foldername)
+                        .maxKeys(100)
+                        .build());
     }
 
 
@@ -124,15 +131,40 @@ public class MinioService {
         }
     }
 
-    public void deleteFolder(String bucketName, String folderName) {
+    public List<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) {
+        try {
+            List<Result<Item>> result = new ArrayList<>();
+            Iterable<Result<Item>> listFindObjects = listObjectsInFolder(bucketName, folderName, path);
+            Queue<Iterable<Result<Item>>> queue = new LinkedList();
+            queue.add(listFindObjects);
+
+            while (!queue.isEmpty()) {
+                listFindObjects = queue.poll();
+
+                for (Result<Item> cur :
+                        listFindObjects) {
+                    log.info("deleteFolder : " + cur.get().objectName());
+                    if (cur.get().isDir()) {
+                        var listNew = listObjectsInFolder(bucketName, cur.get().objectName(), cur.get().objectName());
+                        queue.add(listNew);
+                    }
+                    result.add(cur);
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.info("findAllObjectInFolder :" + e.getMessage());
+        }
+        return null;
+    }
+
+    public void deleteFolder(String bucketName, String folderName, String path) {
         try {
             List<DeleteObject> objects = new LinkedList<>();
-            Iterable<Result<Item>> list = listPathObjects(bucketName, folderName);
-            for (Result<Item> cur :
-                    list) {
-                objects.add(new DeleteObject(cur.get().objectName()));
+            var findList = findAllObjectInFolder(bucketName, folderName, path);
+            for (Result<Item> itemResult : findList) {
+                objects.add(new DeleteObject(itemResult.get().objectName()));
             }
-
             Iterable<Result<DeleteError>> results =
                     minioClient.removeObjects(
                             RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
@@ -141,9 +173,11 @@ public class MinioService {
                 log.info(
                         "Error in deleting object " + error.objectName() + "; " + error.message());
             }
-        } catch (Exception e) {
-            log.info(e.getMessage());
+        } catch (
+                Exception e) {
+            log.info("deleteFolder :" + e.getMessage());
         }
+
     }
 
     public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) {
@@ -199,6 +233,28 @@ public class MinioService {
         deleteObject(bucketName, objectNameSource);
 
         log.info(objectNameSource + " transfer to " + folderName + nameFile);
+    }
+
+    public void renameObject(String bucketName, String fileName, String fileNameNew) {
+        copyObject(bucketName, fileNameNew, fileName);
+        deleteObject(bucketName, fileName);
+
+        log.info(fileName + " rename to " + fileNameNew);
+    }
+
+    public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) {
+        try {
+            var findList = findAllObjectInFolder(bucketName, folderName, "");
+            for (Result<Item> itemResult : findList) {
+                var sourceName = itemResult.get().objectName();
+                var nameNew = path + folderNameNew + sourceName.substring(folderName.length());
+                log.info("sn " + sourceName);
+                log.info("nn " + nameNew);
+                renameObject(bucketName, itemResult.get().objectName(), nameNew);
+            }
+        } catch (Exception e) {
+            log.info("renameFolder : " + e.getMessage());
+        }
     }
 }
 

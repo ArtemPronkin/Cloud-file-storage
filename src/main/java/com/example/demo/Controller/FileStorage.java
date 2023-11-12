@@ -73,8 +73,9 @@ public class FileStorage {
     }
 
     @GetMapping(value = "/deleteFolder")
-    String deleteAllFileInFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("folderName") String folderName) {
-        minioService.deleteFolder(minioService.generateStorageName(user.getId()), folderName);
+    String deleteAllFileInFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("folderName") String folderName,
+                                 @RequestParam Optional<String> path) {
+        minioService.deleteFolder(minioService.generateStorageName(user.getId()), folderName, path.orElse(""));
         return "redirect:/storage";
     }
 
@@ -88,6 +89,21 @@ public class FileStorage {
     String transferFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName,
                         @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) {
         minioService.transferObject(minioService.generateStorageName(user.getId()), fileName, folderName.orElse("") + "/");
+        return "redirect:/storage";
+    }
+
+    @PostMapping("/renameFile")
+    String renameFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, @RequestParam String fileNameNew,
+                      @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) {
+        minioService.renameObject(minioService.generateStorageName(user.getId()),
+                fileName, path.orElse("") + fileNameNew);
+        return "redirect:/storage";
+    }
+
+    @PostMapping("/renameFolder")
+    String renameFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam String folderName, @RequestParam String folderNameNew,
+                        @RequestParam Optional<String> path) {
+        minioService.renameFolder(minioService.generateStorageName(user.getId()), folderName, folderNameNew, path.orElse(""));
         return "redirect:/storage";
     }
 

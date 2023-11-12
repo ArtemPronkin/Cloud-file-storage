@@ -8,6 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -17,6 +21,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Slf4j
@@ -36,10 +43,12 @@ public class FileStorage {
     }
 
     @GetMapping(value = "/download")
-    void getFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, HttpServletResponse response) {
-        response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+    void getFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, HttpServletResponse response){
+
+        var file =  minioService.getObject(minioService.generateStorageName(user.getId()), fileName);
+        fileName = URLEncoder.encode(fileName.substring(fileName.lastIndexOf("/")+1), StandardCharsets.UTF_8);
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName.replace('+',' ') );
         response.setStatus(HttpServletResponse.SC_OK);
-        var file = minioService.getObject(minioService.generateStorageName(user.getId()), fileName);
         try {
             FileCopyUtils.copy(file, response.getOutputStream());
         } catch (IOException e) {
@@ -76,7 +85,7 @@ public class FileStorage {
     }
 
     @PostMapping("/createFolder")
-    String createFolder(@AuthenticationPrincipal MyPrincipal user,@RequestParam("folderName") String folderName , @RequestParam Optional<String> path) throws IOException {
+    String createFolder(@AuthenticationPrincipal MyPrincipal user,@RequestParam("folderName") String folderName , @RequestParam Optional<String> path){
         minioService.createFolder(minioService.generateStorageName(user.getId()),path.orElse("")+folderName);
         return "redirect:/storage";
     }

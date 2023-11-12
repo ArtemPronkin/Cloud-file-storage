@@ -57,7 +57,7 @@
 
 <div th:each="object : ${objectList}">
     <div th:if="${!object.get().isDir()}">
-        <div th:if="${object.get().size()!=0}">
+        <div th:if="${!object.get().objectName().equals(path)}">
             <p><a th:href="@{'/storage/download?fileName='+${object.get().objectName()}}">
                 <span th:text="${object.get().objectName()}"></span>
             </a>

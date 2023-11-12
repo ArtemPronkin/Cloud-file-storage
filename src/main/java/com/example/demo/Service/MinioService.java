@@ -19,6 +19,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Component
@@ -95,7 +98,7 @@ public class MinioService {
                             .object(objectName)
                             .build());
         } catch (Exception e) {
-            log.info("get Object : " +e.getMessage());
+            log.info("get Object : " + e.getMessage());
             return null;
         }
     }
@@ -144,10 +147,18 @@ public class MinioService {
 
     public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) {
         try {
-            String folderName = Arrays.stream(multipartFiles).findFirst().get().getOriginalFilename();
-            createFolder(bucketName,folderName.substring(0,folderName.indexOf("/")));
             for (MultipartFile file :
                     multipartFiles) {
+                String fullPathName = file.getOriginalFilename();
+                var folderPath = "";
+                var filename = fullPathName.substring(fullPathName.lastIndexOf("/")+1);
+                while (!fullPathName.equals(filename)) {
+                    var tk = new StringTokenizer(fullPathName, "/");
+                    folderPath = folderPath + tk.nextToken() + "/";
+                    System.out.println(folderPath);
+                    fullPathName = fullPathName.substring(fullPathName.indexOf("/")+1);
+                    createFolder(bucketName,folderPath);
+                }
                 putObject(bucketName, path + file.getOriginalFilename(), file.getContentType(), file.getInputStream());
             }
         } catch (Exception e) {
@@ -173,9 +184,9 @@ public class MinioService {
     }
 
     public void transferObject(String bucketName, String objectNameSource, String folderName) {
-        createFolder(bucketName,folderName);
-        String nameFile = objectNameSource.substring(objectNameSource.lastIndexOf("/")+1);
-        log.info(objectNameSource +" transfer to " +folderName + nameFile);
+        createFolder(bucketName, folderName);
+        String nameFile = objectNameSource.substring(objectNameSource.lastIndexOf("/") + 1);
+        log.info(objectNameSource + " transfer to " + folderName + nameFile);
         copyObject(bucketName, folderName + nameFile, objectNameSource);
         deleteObject(bucketName, objectNameSource);
     }

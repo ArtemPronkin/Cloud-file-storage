@@ -4,6 +4,7 @@ import io.minio.*;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,16 +24,30 @@ public class MinioService {
         return "user-" + id + "-files";
     }
 
-    public Iterable<Result<Item>> listObjects(String name) {
-        Iterable<Result<Item>> results = minioClient.listObjects(
-                ListObjectsArgs.builder().bucket(name).build());
-        return results;
+    @SneakyThrows
+    public Iterable<Result<Item>> searchFile(String bucketName, String fileName) {
+        ArrayList<Result<Item>> result = new ArrayList<>();
+        Iterable<Result<Item>> allFile =
+                minioClient.listObjects(
+                        ListObjectsArgs.builder()
+                                .bucket(bucketName)
+                                .recursive(true)
+                                .build());
+        for (Result<Item> itemResult : allFile) {
+            if (itemResult.get().objectName()
+                    .toLowerCase()
+                    .contains(fileName.toLowerCase()) && !itemResult.get().isDir()) {
+                result.add(itemResult);
+            }
+        }
+        return result;
+
     }
 
-    public Iterable<Result<Item>> listPathObjects(String name, String path) {
+    public Iterable<Result<Item>> listPathObjects(String bucketName, String path) {
         return minioClient.listObjects(
                 ListObjectsArgs.builder()
-                        .bucket(name)
+                        .bucket(bucketName)
                         .startAfter("")
                         .prefix(path)
                         .maxKeys(100)
@@ -131,7 +146,7 @@ public class MinioService {
         }
     }
 
-    public List<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) {
+    public Iterable<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) {
         try {
             List<Result<Item>> result = new ArrayList<>();
             Iterable<Result<Item>> listFindObjects = listObjectsInFolder(bucketName, folderName, path);
@@ -200,8 +215,7 @@ public class MinioService {
                     multipartFiles) {
 
                 String fullPathName = file.getOriginalFilename();
-
-                createFoldersForPath(bucketName, fullPathName);
+                createFoldersForPath(bucketName, path + fullPathName);
                 putObject(bucketName,
                         path + file.getOriginalFilename(),
                         file.getContentType(),
@@ -254,8 +268,6 @@ public class MinioService {
                 var sourceName = itemResult.get().objectName();
                 var nameNew = folderNameNew + sourceName.substring(folderName.length());
                 createFoldersForPath(bucketName, nameNew);
-                log.info("sn " + sourceName);
-                log.info("nn " + nameNew);
                 renameObject(bucketName, itemResult.get().objectName(), nameNew);
             }
         } catch (Exception e) {

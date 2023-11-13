@@ -41,82 +41,102 @@
         </tr>
     </table>
 </form>
+<form th:action="@{/storage/search}" th:method="POST">
+    <input name="path" th:value="${path}" type="hidden"/>
+    <label>Поиск файла
+        <input name="fileName"
+               value=""
+               type="text">
+    </label>
+
+    <input class="button" type="submit" value="Поиск"/>
 
 
+</form>
+<p>Текущий путь : <span th:text="${path}"></span></p>
+
+<a th:href="@{'/storage?path='+${backPath}}"><span>...</span></a>
 <div th:each="object : ${objectList}">
-    <div th:if="${object.get().isDir()}">
-        <p>
-            <a th:href="@{'/storage?path='+${object.get().objectName()}}">
-                <span th:text="${object.get().objectName()}"></span>
-            </a>
-            <a th:href="@{'/storage/deleteFolder?folderName='+${object.get().objectName()}}"><span>  delete folder</span></a>
-
-        <form th:action="@{/storage/renameFolder}" th:method="POST">
+    <div th:with="folderName=${object.get().objectName()}">
+        <div th:if="${object.get().isDir()}">
             <p>
+                <a th:href="@{'/storage?path='+${folderName}}">
+                    <span th:text="${folderName.substring(path.length(),folderName.length()-1)}"></span>
+                </a>
+                <a th:href="@{'/storage/deleteFolder?folderName='+${folderName}}"><span>  delete folder</span></a>
 
-                <input name="path" th:value="${path}" type="hidden"/>
-                <input name="folderName" th:value="${object.get().objectName()}" type="hidden"/>
+            <form th:action="@{/storage/renameFolder}" th:method="POST">
+                <p>
 
-                <label>Новое имя
-                    <input name="folderNameNew"
-                           th:value="${object.get().objectName()}"
-                           type="text">
-                </label>
+                    <input name="path" th:value="${path}" type="hidden"/>
+                    <input name="folderName" th:value="${folderName}" type="hidden"/>
 
-                <input class="button" type="submit" value="Переименовать папку"/>
+                    <label>Изменить имя и путь папки
+                        <input name="folderNameNew"
+                               th:value="${folderName}"
+                               type="text">
+                    </label>
 
+                    <input class="button" type="submit" value="Редактировать"/>
+
+                </p>
+            </form>
             </p>
-        </form>
-        </p>
+        </div>
     </div>
+</div>
 </div>
 
 
 <div th:each="object : ${objectList}">
-    <div th:if="${!object.get().isDir()}">
-        <div th:if="${!object.get().objectName().equals(path)}">
-            <a th:href="@{'/storage/download?fileName='+${object.get().objectName()}}">
-                <span th:text="${object.get().objectName().substring(object.get().objectName().lastIndexOf('/')+1)}"></span>
-            </a>
+    <div th:with="objectName=${object.get().objectName()}">
+        <div th:with="objectNameWeb=${objectName.substring(object.get().objectName().lastIndexOf('/')+1)}">
+            <div th:if="${!object.get().isDir()}">
+                <div th:if="${!objectName.equals(path)}">
+                    <div th:if="${!objectNameWeb.isEmpty()}">
+                        <a th:href="@{'/storage/download?fileName='+${objectName}}">
+                            <span th:text="${objectNameWeb}"></span>
+                        </a>
 
-            <a th:href="@{'/storage/delete?fileName='+${object.get().objectName()}}"><span>  delete</span></a>
-
-
-
-            <form th:action="@{/storage/transferFile}" th:method="POST">
-
-                <input name="path" th:value="${path}" type="hidden"/>
-                <input name="fileName"
-                       th:value="${object.get().objectName()}"
-                       type="hidden"/>
-
-                <label>Имя новой папки
-                    <input name="folderName" th:value="${path}" type="text">
-                </label>
+                        <a th:href="@{'/storage/delete?fileName='+${objectName}}"><span>  delete</span></a>
 
 
-                <input class="button" type="submit" value="Перенести файл"/>
+                        <form th:action="@{/storage/transferFile}" th:method="POST">
 
-            </form>
-            </p>
-            <form th:action="@{/storage/renameFile}" th:method="POST">
+                            <input name="path" th:value="${path}" type="hidden"/>
+                            <input name="fileName"
+                                   th:value="${objectName}"
+                                   type="hidden"/>
 
-
-                <input name="path" th:value="${path}" type="hidden"/>
-                <input name="fileName" th:value="${object.get().objectName()}" type="hidden"/>
-
-                <label>Новое имя
-                    <input name="fileNameNew"
-                           th:value="${object.get().objectName().substring(object.get().objectName().lastIndexOf('/')+1)}"
-                           type="text">
-                </label>
-
-                <input class="button" type="submit" value="Переименовать файл"/>
+                            <label>Имя новой папки
+                                <input name="folderName" th:value="${path}" type="text">
+                            </label>
 
 
-            </form>
+                            <input class="button" type="submit" value="Перенести файл"/>
+
+                        </form>
+                        </p>
+                        <form th:action="@{/storage/renameFile}" th:method="POST">
 
 
+                            <input name="path" th:value="${objectName.substring(0,objectName.lastIndexOf('/')+1)}" type="hidden"/>
+                            <input name="fileName" th:value="${objectName}" type="hidden"/>
+
+                            <label>Новое имя
+                                <input name="fileNameNew"
+                                       th:value="${objectNameWeb}"
+                                       type="text">
+                            </label>
+
+                            <input class="button" type="submit" value="Переименовать файл"/>
+
+
+                        </form>
+
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

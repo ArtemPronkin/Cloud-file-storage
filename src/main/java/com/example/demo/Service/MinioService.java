@@ -267,7 +267,7 @@ public class MinioService {
             for (Result<Item> itemResult : findList) {
                 var sourceName = itemResult.get().objectName();
                 var nameNew = folderNameNew + sourceName.substring(folderName.length());
-                createFoldersForPath(bucketName, nameNew);
+                createFoldersForPath(bucketName, folderNameNew);
                 renameObject(bucketName, itemResult.get().objectName(), nameNew);
             }
         } catch (Exception e) {

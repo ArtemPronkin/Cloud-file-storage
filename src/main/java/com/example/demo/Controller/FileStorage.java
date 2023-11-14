@@ -62,19 +62,13 @@ public class FileStorage {
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
-    @GetMapping(value = "/delete")
+    @DeleteMapping(value = "/delete")
     String deleteFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, @RequestParam Optional<String> path) {
         minioService.deleteObject(minioService.generateStorageName(user.getId()), fileName);
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
-    @GetMapping(value = "/delete/{fileName}/")
-    String deleteFolder(@AuthenticationPrincipal MyPrincipal user, @PathVariable String fileName, @RequestParam Optional<String> path) {
-        minioService.deleteObject(minioService.generateStorageName(user.getId()), fileName + "/");
-        return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
-    }
-
-    @GetMapping(value = "/deleteFolder")
+    @DeleteMapping(value = "/deleteFolder")
     String deleteAllFileInFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("folderName") String folderName,
                                  @RequestParam Optional<String> path) {
         minioService.deleteFolder(minioService.generateStorageName(user.getId()), folderName, path.orElse(""));
@@ -82,19 +76,21 @@ public class FileStorage {
     }
 
     @PostMapping("/createFolder")
-    String createFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("folderName") String folderName, @RequestParam Optional<String> path) {
-        minioService.createFolder(minioService.generateStorageName(user.getId()), path.orElse("") + folderName);
+    String createFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("folderName") Optional<String> folderName, @RequestParam Optional<String> path) {
+        if (folderName.isPresent() && !folderName.get().isBlank()) {
+            minioService.createFoldersForPath(minioService.generateStorageName(user.getId()), path.orElse("") + folderName.orElse("") + "/");
+        }
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
-    @PostMapping("/transferFile")
+    @PatchMapping("/transferFile")
     String transferFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName,
                         @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) {
         minioService.transferObject(minioService.generateStorageName(user.getId()), fileName, folderName.orElse("") + "/");
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
-    @PostMapping("/renameFile")
+    @PatchMapping("/renameFile")
     String renameFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, @RequestParam String fileNameNew,
                       @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) {
         minioService.renameObject(minioService.generateStorageName(user.getId()),
@@ -102,17 +98,19 @@ public class FileStorage {
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
-    @PostMapping("/renameFolder")
+    @PatchMapping("/renameFolder")
     String renameFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam String folderName, @RequestParam String folderNameNew,
                         @RequestParam Optional<String> path) {
-        minioService.renameFolder(minioService.generateStorageName(user.getId()), folderName, folderNameNew, path.orElse(""));
+        minioService.renameFolder(minioService.generateStorageName(user.getId()), folderName, folderNameNew + "/", path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @PostMapping("/search")
-    String postSearch(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName,
+    String postSearch(@AuthenticationPrincipal MyPrincipal user, @RequestParam Optional<String> fileName,
                       @RequestParam Optional<String> path, Model model) {
-        return "redirect:/storage/search?fileName=" + pathNameUtils.encode(fileName);
+        if (fileName.isEmpty() || fileName.get().isBlank())
+            return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
+        return "redirect:/storage/search?fileName=" + pathNameUtils.encode(fileName.get());
 
     }
 

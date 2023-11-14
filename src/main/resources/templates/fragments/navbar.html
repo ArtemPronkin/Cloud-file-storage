@@ -1,0 +1,28 @@
+<header>
+    <div class="100 p-3" style="background-color: white;">
+        <nav class="navbar navbar-expand navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" th:href="@{/storage}">File Storage</a>
+                <div class="collapse navbar-collapse " id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <form method="post" th:action="@{/logout}">
+                                <button class="btn btn-primary" type="submit">Out</button>
+                            </form>
+                        </li>
+                    </ul>
+
+                    <form class="d-flex" method="get" th:action="@{/storage/search}">
+                        <input name="path" th:value="${path}" type="hidden"/>
+                        <input aria-label="Search" class="form-control me-2" name="fileName" placeholder="Поиск файлов"
+                               type="search">
+                        <button class="btn btn-outline-success" type="submit">Search</button>
+                    </form>
+                </div>
+            </div>
+
+        </nav>
+    </div>
+
+
+</header>

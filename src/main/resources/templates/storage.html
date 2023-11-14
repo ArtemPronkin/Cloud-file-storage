@@ -34,155 +34,210 @@
                 </p>
             </div>
 
+            <div class="container">
 
-            <div th:each="object : ${objectList}">
-                <div th:if="${object.get().isDir()}">
-                    <div th:with="folderName=${object.get().objectName()}">
-                        <div th:with="folderNameWeb=${folderName.substring(path.length(),folderName.length()-1)}">
+                <div class="row">
+                    <div class="col">
+                        Имя
+                    </div>
+                    <div class="col">
+                        Тип
+                    </div>
+                    <div class="col">
+                        Размер
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <p></p>
+                        </div>
+                    </div>
 
 
-                            <div class="btn-group dropend">
+                    <div th:each="object : ${objectList}">
+                        <div th:if="${object.get().isDir()}">
+                            <div th:with="folderName=${object.get().objectName()}">
+                                <div th:with="folderNameWeb=${folderName.substring(path.length(),folderName.length()-1)}">
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="btn-group dropend">
 
-                                <button aria-expanded="false"
-                                        class="btn-sm btn btn-outline-dark dropdown-toggle dropdown-toggle-split"
-                                        data-bs-auto-close="false" data-bs-toggle="dropdown" type="button">
-                                    <span class="visually-hidden">Переключатель выпадающего списка</span>
-                                </button>
-                                <img th:src="@{/img/folder.png}"/>
-                                <a role="button" th:href="@{'/storage?path='+${folderName}}">
-                                    <span th:text="${folderNameWeb}"></span>
-                                </a>
-                                <ul aria-labelledby="dropdownMenuButton1" class="dropdown-menu">
-                                    <li>
-                                        <img th:src="@{/img/folder.png}"/>
-                                        <a role="button" th:href="@{'/storage?path='+${folderName}}">
-                                            <span th:text="${folderNameWeb}"></span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <form th:action="@{/storage/deleteFolder}" th:method="DELETE">
-                                            <input name="path" th:value="${path}" type="hidden"/>
-                                            <input name="folderName" th:value="${folderName}" type="hidden">
-                                            <input class="btn-sm btn-danger" type="submit" value="Удалить папку"/>
-                                        </form>
-                                    </li>
-                                    <li>
 
-                                        <form th:action="@{/storage/renameFolder}" th:method="PATCH">
-                                            <p>
+                                                <button aria-expanded="false"
+                                                        class="btn-sm btn btn-outline-dark dropdown-toggle dropdown-toggle-split"
+                                                        data-bs-auto-close="false" data-bs-toggle="dropdown"
+                                                        type="button">
+                                                    <span class="visually-hidden">Переключатель выпадающего списка</span>
+                                                </button>
+                                                <img th:src="@{/img/folder.png}"/>
+                                                <a role="button" th:href="@{'/storage?path='+${folderName}}">
+                                                    <span th:text="${folderNameWeb}"></span>
+                                                </a>
+                                                <ul aria-labelledby="dropdownMenuButton1" class="dropdown-menu">
+                                                    <li>
+                                                        <img th:src="@{/img/folder.png}"/>
+                                                        <a role="button" th:href="@{'/storage?path='+${folderName}}">
+                                                            <span th:text="${folderNameWeb}"></span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <form th:action="@{/storage/deleteFolder}" th:method="DELETE">
+                                                            <input name="path" th:value="${path}" type="hidden"/>
+                                                            <input name="folderName" th:value="${folderName}"
+                                                                   type="hidden">
+                                                            <input class="btn-sm btn-danger" type="submit"
+                                                                   value="Удалить папку"/>
+                                                        </form>
+                                                    </li>
+                                                    <li>
 
-                                                <input name="path" th:value="${path}" type="hidden"/>
-                                                <input name="folderName" th:value="${folderName}" type="hidden"/>
+                                                        <form th:action="@{/storage/renameFolder}" th:method="PATCH">
+                                                            <p>
 
-                                                <label>Изменить имя и путь папки
-                                                    <input name="folderNameNew"
-                                                           th:value="${folderName}"
-                                                           type="text">
-                                                </label>
+                                                                <input name="path" th:value="${path}" type="hidden"/>
+                                                                <input name="folderName" th:value="${folderName}"
+                                                                       type="hidden"/>
 
-                                                <input class="btn-sm btn-primary" type="submit"
-                                                       value="Редактировать"/>
+                                                                <label>Изменить имя и путь папки
+                                                                    <input name="folderNameNew"
+                                                                           th:value="${folderName}"
+                                                                           type="text">
+                                                                </label>
 
-                                            </p>
-                                        </form>
-                                    </li>
-                                </ul>
+                                                                <input class="btn-sm btn-primary" type="submit"
+                                                                       value="Редактировать"/>
+
+                                                            </p>
+                                                        </form>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <p>Папка с файлами</p>
+                                        </div>
+                                        <div class="col">
+                                            <p></p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
 
-            <div th:each="object : ${objectList}">
-                <div th:if="${!object.get().isDir()}">
-                    <div th:with="objectName=${object.get().objectName()}">
-                        <div th:with="objectNameWeb=${objectName.substring(object.get().objectName().lastIndexOf('/')+1)}">
-                            <div th:if="${!object.get().isDir()}">
-                                <div th:if="${!objectName.equals(path)}">
-                                    <div th:if="${!objectNameWeb.isEmpty()}">
+                    <div th:each="object : ${objectList}">
+                        <div th:if="${!object.get().isDir()}">
+                            <div th:with="objectName=${object.get().objectName()}">
+                                <div th:with="objectNameWeb=${objectName.substring(object.get().objectName().lastIndexOf('/')+1)}">
+                                    <div th:if="${!object.get().isDir()}">
+                                        <div th:if="${!objectName.equals(path)}">
+                                            <div th:if="${!objectNameWeb.isEmpty()}">
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <div class="btn-group dropend">
 
-                                        <div class="btn-group dropend">
+                                                            <button aria-expanded="false"
+                                                                    class="btn-sm btn-outline-success dropdown-toggle dropdown-toggle-split"
+                                                                    data-bs-toggle="dropdown" type="button">
+                                                                <span class="visually-hidden">Переключатель выпадающего списка</span>
+                                                            </button>
+                                                            <img th:src="@{/img/file.png}"/>
+                                                            <a role="button"
+                                                               th:href="@{'/storage/download?fileName='+${objectName}}">
+                                                                <span th:text="${objectNameWeb}"></span>
+                                                            </a>
 
-                                            <button aria-expanded="false"
-                                                    class="btn-sm btn-outline-success dropdown-toggle dropdown-toggle-split"
-                                                    data-bs-toggle="dropdown" type="button">
-                                                <span class="visually-hidden">Переключатель выпадающего списка</span>
-                                            </button>
-                                            <img th:src="@{/img/file.png}"/>
-                                            <a role="button"
-                                               th:href="@{'/storage/download?fileName='+${objectName}}">
-                                                <span th:text="${objectNameWeb}"></span>
-                                            </a>
+                                                            <ul aria-labelledby="dropdownMenuButton1"
+                                                                class="dropdown-menu">
+                                                                <li>
+                                                                    <img th:src="@{/img/file.png}"/>
+                                                                    <a role="button"
+                                                                       th:href="@{'/storage/download?fileName='+${objectName}}">
+                                                                        <span th:text="${objectNameWeb}"></span>
+                                                                    </a>
+                                                                </li>
 
-                                            <ul aria-labelledby="dropdownMenuButton1" class="dropdown-menu">
-                                                <li>
-                                                    <img th:src="@{/img/file.png}"/>
-                                                    <a role="button"
-                                                       th:href="@{'/storage/download?fileName='+${objectName}}">
-                                                        <span th:text="${objectNameWeb}"></span>
-                                                    </a>
-                                                </li>
+                                                                <li>
+                                                                    <a class="btn btn-success" role="button"
+                                                                       th:href="@{'/storage/download?fileName='+${objectName}}">
+                                                                        Скачать
+                                                                    </a>
+                                                                </li>
 
-                                                <li>
-                                                    <a class="btn btn-success" role="button"
-                                                       th:href="@{'/storage/download?fileName='+${objectName}}">
-                                                        Скачать
-                                                    </a>
-                                                </li>
+                                                                <li>
+                                                                    <form th:action="@{/storage/delete}"
+                                                                          th:method="DELETE">
+                                                                        <input name="fileName" th:value="${objectName}"
+                                                                               type="hidden">
+                                                                        <input class="btn-sm btn-danger" role="button"
+                                                                               type="submit"
+                                                                               value="Удалить файл"/>
+                                                                    </form>
+                                                                </li>
 
-                                                <li>
-                                                    <form th:action="@{/storage/delete}" th:method="DELETE">
-                                                        <input name="fileName" th:value="${objectName}" type="hidden">
-                                                        <input class="btn-sm btn-danger" role="button" type="submit"
-                                                               value="Удалить файл"/>
-                                                    </form>
-                                                </li>
+                                                                <li>
+                                                                    <form th:action="@{/storage/transferFile}"
+                                                                          th:method="PATCH">
 
-                                                <li>
-                                                    <form th:action="@{/storage/transferFile}" th:method="PATCH">
+                                                                        <input name="path" th:value="${path}"
+                                                                               type="hidden"/>
+                                                                        <input name="fileName"
+                                                                               th:value="${objectName}"
+                                                                               type="hidden"/>
 
-                                                        <input name="path" th:value="${path}" type="hidden"/>
-                                                        <input name="fileName"
-                                                               th:value="${objectName}"
-                                                               type="hidden"/>
+                                                                        <label>Имя новой папки
+                                                                            <input name="folderName" th:value="${path}"
+                                                                                   type="text">
+                                                                        </label>
+                                                                        <button class="btn-sm  btn-primary"
+                                                                                type="submit">
+                                                                            Перенести
+                                                                            файл
+                                                                        </button>
 
-                                                        <label>Имя новой папки
-                                                            <input name="folderName" th:value="${path}" type="text">
-                                                        </label>
-                                                        <button class="btn-sm  btn-primary" type="submit">Перенести
-                                                            файл
-                                                        </button>
-
-                                                    </form>
-                                                </li>
-                                                <li>
-                                                    <form th:action="@{/storage/renameFile}" th:method="PATCH">
-
-
-                                                        <input name="path"
-                                                               th:value="${objectName.substring(0,objectName.lastIndexOf('/')+1)}"
-                                                               type="hidden"/>
-                                                        <input name="fileName" th:value="${objectName}" type="hidden"/>
-
-                                                        <label>Новое имя
-                                                            <input name="fileNameNew"
-                                                                   th:value="${objectNameWeb}"
-                                                                   type="text">
-                                                        </label>
-
-                                                        <button class="btn-sm btn-primary" type="submit">Переименовать
-                                                            файл
-                                                        </button>
-
-                                                    </form>
-
-                                                </li>
+                                                                    </form>
+                                                                </li>
+                                                                <li>
+                                                                    <form th:action="@{/storage/renameFile}"
+                                                                          th:method="PATCH">
 
 
-                                            </ul>
+                                                                        <input name="path"
+                                                                               th:value="${objectName.substring(0,objectName.lastIndexOf('/')+1)}"
+                                                                               type="hidden"/>
+                                                                        <input name="fileName" th:value="${objectName}"
+                                                                               type="hidden"/>
+
+                                                                        <label>Новое имя
+                                                                            <input name="fileNameNew"
+                                                                                   th:value="${objectNameWeb}"
+                                                                                   type="text">
+                                                                        </label>
+
+                                                                        <button class="btn-sm btn-primary"
+                                                                                type="submit">
+                                                                            Переименовать
+                                                                            файл
+                                                                        </button>
+
+                                                                    </form>
+
+                                                                </li>
+
+
+                                                            </ul>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="col">
+                                                        <p th:text="${'Файл '+ objectNameWeb.substring(objectNameWeb.indexOf('.'))}"></p>
+                                                    </div>
+                                                    <div class="col">
+                                                        <p th:text="${object.get().size()/1024}+'kb'"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>

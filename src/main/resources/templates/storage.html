@@ -41,17 +41,17 @@
                     <div class="col col-lg-1 ">
 
                     </div>
-                    <div class="col col-lg-5 ">
+                    <div class="col col-lg-6 ">
                         <p><a th:href="@{'/storage?sort=name&search='+${search}}">Имя</a></p>
                     </div>
-                    <div class="col col-lg-2 ">
-                        <p><a th:href="@{'/storage?sort=type&search='+${search}}">Тип</a></p>
+                    <div class="col col-lg-1 ">
+                        <p class="text-end"><a th:href="@{'/storage?sort=type&search='+${search}}">Тип</a></p>
                     </div>
                     <div class="col col-lg-2 ">
-                        <p><a th:href="@{'/storage?sort=size&search='+${search}}">Размер</a></p>
+                        <p class="text-end"><a th:href="@{'/storage?sort=size&search='+${search}}">Размер</a></p>
                     </div>
                     <div class="col col-lg-2 text-wrap">
-                        <p><a th:href="@{'/storage?sort=date&search='+${search}}">Дата изменения</a></p>
+                        <p class="text-end" ><a th:href="@{'/storage?sort=date&search='+${search}}">Дата изменения</a></p>
                     </div>
                 </div>
 
@@ -115,14 +115,14 @@
 
                                         </div>
                                     </div>
-                                    <div class="col col-lg-5 text-truncate">
+                                    <div class="col col-lg-6 text-truncate">
                                         <img th:src="@{img/folder.png}"/>
                                         <a role="button" th:href="@{'/storage?path='+${folderName}}">
                                             <span th:text="${folderNameWeb}"></span>
                                         </a>
                                     </div>
-                                    <div class="col col-lg-2">
-                                        <p>Папка</p>
+                                    <div class="col col-lg-1">
+                                        <p class="text-end">Папка</p>
                                     </div>
                                     <div class="col col-lg-2">
                                         <p></p>
@@ -242,7 +242,7 @@
                                                     </div>
 
                                                 </div>
-                                                <div class="col col-lg-5 text-truncate">
+                                                <div class="col col-lg-6 text-truncate">
                                                     <img th:src="@{img/file.png}"/>
                                                     <a role="button" class="breakAll"
                                                        th:href="@{'/storage/download?fileName='+${objectName}}">
@@ -250,14 +250,14 @@
                                                     </a>
 
                                                 </div>
-                                                <div class="col col-lg-2 text-truncate">
-                                                    <p th:text="${'Файл '+ objectNameWeb.substring(objectNameWeb.lastIndexOf('.'))}"></p>
+                                                <div class="col col-lg-1 text-truncate">
+                                                    <p class="text-end" th:text="${objectNameWeb.substring(objectNameWeb.lastIndexOf('.'))}"></p>
                                                 </div>
                                                 <div class="col col-lg-2 text-truncate">
                                                     <p class="text-end" th:text="${object.getSize()/1024}+' Кб'"></p>
                                                 </div>
                                                 <div class="col col-lg-2 text-truncate">
-                                                    <p th:text="${object.getLastModified()}"></p>
+                                                    <p class="text-end" th:text="${object.getLastModified()}"></p>
                                                 </div>
                                             </div>
                                         </div>

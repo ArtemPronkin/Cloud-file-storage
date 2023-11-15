@@ -26,27 +26,29 @@ public class MinioService {
     }
 
     @SneakyThrows
-    public Iterable<Result<Item>> searchFile(String bucketName, String fileName) {
-        ArrayList<Result<Item>> result = new ArrayList<>();
-        Iterable<Result<Item>> allFile =
-                minioClient.listObjects(
-                        ListObjectsArgs.builder()
-                                .bucket(bucketName)
-                                .recursive(true)
-                                .build());
-        for (Result<Item> itemResult : allFile) {
-            if (itemResult.get().objectName()
-                    .toLowerCase()
-                    .contains(fileName.toLowerCase()) && !itemResult.get().isDir()) {
-                result.add(itemResult);
-            }
-        }
-        return result;
+    public Iterable<Result<Item>> listAllFile(String bucketName, String fileName) {
+        return minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .startAfter(fileName)
+                        .prefix("")
+                        .recursive(true)
+                        .maxKeys(100)
+                        .build());
 
     }
 
     public List<FileDTO> searchFileDTO(String bucketName, String fileName) throws Exception {
-        return FileDTO.getFileDTOList(searchFile(bucketName, fileName));
+        var allFiles = FileDTO.getFileDTOList(findAllObjectInFolder(bucketName, "", ""));
+        ArrayList<FileDTO> result = new ArrayList<>();
+        for (FileDTO fileDTO : allFiles) {
+            log.info(fileDTO.getObjectName());
+            if (fileDTO.getObjectNameWeb().contains(fileName)) {
+                result.add(fileDTO);
+            }
+        }
+        return result;
+
     }
 
     public Iterable<Result<Item>> listPathObjects(String bucketName, String path) {
@@ -59,7 +61,7 @@ public class MinioService {
                         .build());
     }
 
-    public List<FileDTO> listPathObjectsDTO(String bucketName, String path) throws Exception {
+    public ArrayList<FileDTO> listPathObjectsDTO(String bucketName, String path) throws Exception {
         return FileDTO.getFileDTOList(listPathObjects(bucketName, path));
     }
 
@@ -168,7 +170,6 @@ public class MinioService {
 
                 for (Result<Item> cur :
                         listFindObjects) {
-                    log.info("deleteFolder : " + cur.get().objectName());
                     if (cur.get().isDir()) {
                         var listNew = listObjectsInFolder(bucketName, cur.get().objectName(), cur.get().objectName());
                         queue.add(listNew);

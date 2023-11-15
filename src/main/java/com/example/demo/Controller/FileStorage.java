@@ -2,8 +2,8 @@ package com.example.demo.Controller;
 
 import com.example.demo.Service.MinioService;
 import com.example.demo.Service.MyPrincipal;
+import com.example.demo.model.FileDTO;
 import com.example.demo.util.PathNameUtils;
-import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -28,14 +29,43 @@ public class FileStorage {
     PathNameUtils pathNameUtils;
 
     @GetMapping
-    String storage(@AuthenticationPrincipal MyPrincipal user, Model model, @RequestParam Optional<String> path) throws Exception {
-        var list = minioService.listPathObjectsDTO(minioService.generateStorageName(user.getId()), path.orElse(""));
-        var collection = Lists.newArrayList(list);
-        collection.stream().sorted((p1, p2) -> p1.getObjectName().compareTo(p2.getObjectName()));
-        model.addAttribute("objectList", list);
+    String storage(@AuthenticationPrincipal MyPrincipal user, Model model, @RequestParam Optional<String> path,
+                   @RequestParam Optional<String> sort, Optional<String> search) throws Exception {
+        List<FileDTO> listDTO;
+        if (search.isPresent() && !search.get().isEmpty()) {
+            listDTO
+                    = minioService.searchFileDTO(minioService.generateStorageName(user.getId()), search.get());
+        } else {
+            listDTO
+                    = minioService.listPathObjectsDTO(minioService.generateStorageName(user.getId()), path.orElse(""));
+        }
+        List<FileDTO> collectionSortDTO
+                = null;
+        if (sort.isEmpty() || sort.get().equals("name")) {
+            collectionSortDTO
+                    = listDTO
+                    .stream().sorted((p1, p2) -> p1.getObjectName().toLowerCase().compareTo(p2.getObjectName().toLowerCase())).collect(Collectors.toList());
+        }
+        if (sort.isPresent() && sort.get().equals("size")) {
+            collectionSortDTO
+                    = listDTO
+                    .stream().sorted((p1, p2) -> p1.getSize().compareTo(p2.getSize())).collect(Collectors.toList());
+        }
+        if (sort.isPresent() && sort.get().equals("date")) {
+            collectionSortDTO
+                    = listDTO
+                    .stream().sorted((p1, p2) -> p1.getLastModified().compareTo(p2.getLastModified())).collect(Collectors.toList());
+        }
+        if (sort.isPresent() && sort.get().equals("type")) {
+            collectionSortDTO
+                    = listDTO
+                    .stream().sorted((p1, p2) -> p1.getType().compareTo(p2.getType())).collect(Collectors.toList());
+        }
+        model.addAttribute("objectList", collectionSortDTO
+        );
         model.addAttribute("path", path.orElse(""));
+        model.addAttribute("search", search.orElse(""));
         model.addAttribute("backPath", pathNameUtils.getBackPath(path.orElse("/")));
-        model.addAttribute("dtf", DateTimeFormatter.ofPattern("MM.dd.yy HH:mm"));
         return "storage";
     }
 
@@ -111,23 +141,9 @@ public class FileStorage {
     }
 
     @PostMapping("/search")
-    String postSearch(@AuthenticationPrincipal MyPrincipal user, @RequestParam Optional<String> fileName,
+    String postSearch(@AuthenticationPrincipal MyPrincipal user, @RequestParam Optional<String> search,
                       @RequestParam Optional<String> path, Model model) {
-        if (fileName.isEmpty() || fileName.get().isBlank())
-            return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
-        return "redirect:/storage/search?fileName=" + pathNameUtils.encode(fileName.get());
-
+        return "redirect:/storage?search=" + pathNameUtils.encode(search.orElse(""));
     }
-
-    @GetMapping("/search")
-    String getSearch(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName,
-                     @RequestParam Optional<String> path, Model model) {
-        var list = minioService.searchFile(minioService.generateStorageName(user.getId()), fileName);
-        model.addAttribute("objectList", list);
-        model.addAttribute("path", path.orElse(""));
-        model.addAttribute("backPath", pathNameUtils.getBackPath(path.orElse("/")));
-        return "storage";
-    }
-
 
 }

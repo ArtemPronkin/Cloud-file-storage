@@ -12,9 +12,9 @@
                         </li>
                     </ul>
 
-                    <form class="d-flex" method="get" th:action="@{/storage/search}">
+                    <form class="d-flex" method="get" th:action="@{/storage}">
                         <input name="path" th:value="${path}" type="hidden"/>
-                        <input aria-label="Search" class="form-control me-2" name="fileName" placeholder="Поиск файлов"
+                        <input aria-label="Search" class="form-control me-2" name="search" placeholder="Поиск файлов"
                                type="search">
                         <button class="btn btn-outline-success" type="submit">Search</button>
                     </form>

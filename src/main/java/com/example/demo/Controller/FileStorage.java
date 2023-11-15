@@ -3,6 +3,7 @@ package com.example.demo.Controller;
 import com.example.demo.Service.MinioService;
 import com.example.demo.Service.MyPrincipal;
 import com.example.demo.util.PathNameUtils;
+import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Slf4j
@@ -26,11 +28,14 @@ public class FileStorage {
     PathNameUtils pathNameUtils;
 
     @GetMapping
-    String storage(@AuthenticationPrincipal MyPrincipal user, Model model, @RequestParam Optional<String> path) {
-        var list = minioService.listPathObjects(minioService.generateStorageName(user.getId()), path.orElse(""));
+    String storage(@AuthenticationPrincipal MyPrincipal user, Model model, @RequestParam Optional<String> path) throws Exception {
+        var list = minioService.listPathObjectsDTO(minioService.generateStorageName(user.getId()), path.orElse(""));
+        var collection = Lists.newArrayList(list);
+        collection.stream().sorted((p1, p2) -> p1.getObjectName().compareTo(p2.getObjectName()));
         model.addAttribute("objectList", list);
         model.addAttribute("path", path.orElse(""));
         model.addAttribute("backPath", pathNameUtils.getBackPath(path.orElse("/")));
+        model.addAttribute("dtf", DateTimeFormatter.ofPattern("MM.dd.yy HH:mm"));
         return "storage";
     }
 

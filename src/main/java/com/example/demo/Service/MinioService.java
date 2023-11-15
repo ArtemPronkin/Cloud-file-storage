@@ -1,5 +1,6 @@
 package com.example.demo.Service;
 
+import com.example.demo.model.FileDTO;
 import io.minio.*;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
@@ -44,6 +45,10 @@ public class MinioService {
 
     }
 
+    public List<FileDTO> searchFileDTO(String bucketName, String fileName) throws Exception {
+        return FileDTO.getFileDTOList(searchFile(bucketName, fileName));
+    }
+
     public Iterable<Result<Item>> listPathObjects(String bucketName, String path) {
         return minioClient.listObjects(
                 ListObjectsArgs.builder()
@@ -53,6 +58,11 @@ public class MinioService {
                         .maxKeys(100)
                         .build());
     }
+
+    public List<FileDTO> listPathObjectsDTO(String bucketName, String path) throws Exception {
+        return FileDTO.getFileDTOList(listPathObjects(bucketName, path));
+    }
+
 
     public Iterable<Result<Item>> listObjectsInFolder(String name, String foldername, String path) {
         return minioClient.listObjects(

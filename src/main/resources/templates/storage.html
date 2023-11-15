@@ -30,25 +30,28 @@
 
             <p>Текущий путь : <span th:text="${path}"></span></p>
             <div>
-                <p><a th:href="@{'/storage?path='+${backPath}}"><img th:src="@{/img/back.png}"/>...</a>
+                <p><a th:href="@{'/storage?path='+${backPath}}"><img th:src="@{img/back.png}"/>...</a>
                 </p>
             </div>
 
             <div class="container">
 
-                <div class="row">
-                    <div class="col">
-                        Имя
-                    </div>
-                    <div class="col">
-                        Тип
-                    </div>
-                    <div class="col">
-                        Размер
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            <p></p>
+
+                <div class="row row-cols-5">
+                        <div class="col col-lg-1">
+
+                        </div>
+                        <div class="col col-lg-5">
+                            Имя
+                        </div>
+                        <div class="col col-lg-2">
+                            Тип
+                        </div>
+                        <div class="col col-lg-2">
+                            Размер
+                        </div>
+                        <div class="col col-lg-2">
+                            Дата изменения
                         </div>
                     </div>
 
@@ -57,10 +60,15 @@
                         <div th:if="${object.get().isDir()}">
                             <div th:with="folderName=${object.get().objectName()}">
                                 <div th:with="folderNameWeb=${folderName.substring(path.length(),folderName.length()-1)}">
-                                    <div class="row">
-                                        <div class="col">
+                                    <div class="row row-cols-5">
+                                        <div class="col col-lg-1">
                                             <div class="btn-group dropend">
-
+                                                <form th:action="@{/storage/deleteFolder}" th:method="DELETE">
+                                                    <input name="path" th:value="${path}" type="hidden"/>
+                                                    <input name="folderName" th:value="${folderName}"
+                                                           type="hidden">
+                                                    <input name="submit" src="img/delete.png" type="image">
+                                                </form>
 
                                                 <button aria-expanded="false"
                                                         class="btn-sm btn btn-outline-dark dropdown-toggle dropdown-toggle-split"
@@ -68,13 +76,9 @@
                                                         type="button">
                                                     <span class="visually-hidden">Переключатель выпадающего списка</span>
                                                 </button>
-                                                <img th:src="@{/img/folder.png}"/>
-                                                <a role="button" th:href="@{'/storage?path='+${folderName}}">
-                                                    <span th:text="${folderNameWeb}"></span>
-                                                </a>
                                                 <ul aria-labelledby="dropdownMenuButton1" class="dropdown-menu">
                                                     <li>
-                                                        <img th:src="@{/img/folder.png}"/>
+                                                        <img th:src="@{img/folder.png}"/>
                                                         <a role="button" th:href="@{'/storage?path='+${folderName}}">
                                                             <span th:text="${folderNameWeb}"></span>
                                                         </a>
@@ -110,12 +114,22 @@
                                                         </form>
                                                     </li>
                                                 </ul>
+
                                             </div>
                                         </div>
-                                        <div class="col">
-                                            <p>Папка с файлами</p>
+                                        <div class="col col-lg-5">
+                                            <img th:src="@{img/folder.png}"/>
+                                            <a role="button" th:href="@{'/storage?path='+${folderName}}">
+                                                <span th:text="${folderNameWeb}"></span>
+                                            </a>
                                         </div>
-                                        <div class="col">
+                                        <div class="col col-lg-2">
+                                            <p>Папка</p>
+                                        </div>
+                                        <div class="col col-lg-2">
+                                            <p></p>
+                                        </div>
+                                        <div class="col col-lg-2">
                                             <p></p>
                                         </div>
                                     </div>
@@ -132,25 +146,25 @@
                                     <div th:if="${!object.get().isDir()}">
                                         <div th:if="${!objectName.equals(path)}">
                                             <div th:if="${!objectNameWeb.isEmpty()}">
-                                                <div class="row">
-                                                    <div class="col">
+                                                <div class="row row-cols-5">
+                                                    <div class="col col-lg-1">
                                                         <div class="btn-group dropend">
+                                                            <form th:action="@{/storage/delete}"
+                                                                  th:method="DELETE">
+                                                                <input name="fileName" th:value="${objectName}"
+                                                                       type="hidden">
+                                                                <input name="submit" src="img/delete.png" type="image">
+                                                            </form>
 
                                                             <button aria-expanded="false"
                                                                     class="btn-sm btn-outline-success dropdown-toggle dropdown-toggle-split"
                                                                     data-bs-toggle="dropdown" type="button">
                                                                 <span class="visually-hidden">Переключатель выпадающего списка</span>
                                                             </button>
-                                                            <img th:src="@{/img/file.png}"/>
-                                                            <a role="button"
-                                                               th:href="@{'/storage/download?fileName='+${objectName}}">
-                                                                <span th:text="${objectNameWeb}"></span>
-                                                            </a>
-
                                                             <ul aria-labelledby="dropdownMenuButton1"
                                                                 class="dropdown-menu">
                                                                 <li>
-                                                                    <img th:src="@{/img/file.png}"/>
+                                                                    <img th:src="@{img/file.png}"/>
                                                                     <a role="button"
                                                                        th:href="@{'/storage/download?fileName='+${objectName}}">
                                                                         <span th:text="${objectNameWeb}"></span>
@@ -227,13 +241,22 @@
 
                                                             </ul>
                                                         </div>
-
                                                     </div>
-                                                    <div class="col">
-                                                        <p th:text="${'Файл '+ objectNameWeb.substring(objectNameWeb.indexOf('.'))}"></p>
+                                                    <div class="col col-lg-5">
+                                                        <img th:src="@{img/file.png}"/>
+                                                        <a role="button"
+                                                           th:href="@{'/storage/download?fileName='+${objectName}}">
+                                                            <span th:text="${objectNameWeb}"></span>
+                                                        </a>
                                                     </div>
-                                                    <div class="col">
+                                                    <div class="col col-lg-2">
+                                                        <p th:text="${'Файл '+ objectNameWeb.substring(objectNameWeb.lastIndexOf('.'))}"></p>
+                                                    </div>
+                                                    <div class="col col-lg-2">
                                                         <p th:text="${object.get().size()/1024}+'kb'"></p>
+                                                    </div>
+                                                    <div class="col col-lg-2">
+                                                        <p th:text="${object.get().lastModified().format(dtf)}"></p>
                                                     </div>
                                                 </div>
                                             </div>

@@ -1,0 +1,7 @@
+.image-button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background-image: url('img/delete.png');
+    background-size: cover;
+}

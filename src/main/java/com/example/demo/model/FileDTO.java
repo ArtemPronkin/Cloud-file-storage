@@ -15,6 +15,7 @@ public class FileDTO {
     Long size;
     String lastModified;
     String type;
+    boolean isHidden;
 
     public FileDTO(Result<Item> result) throws Exception {
         var item = result.get();
@@ -31,12 +32,18 @@ public class FileDTO {
         if (isDir) {
             type = "";
         } else type = objectNameWeb.substring(objectNameWeb.lastIndexOf('.') + 1);
+        if (!isDir && objectName.endsWith("/")) {
+            isHidden = true;
+        }
     }
 
     public static ArrayList<FileDTO> getFileDTOList(Iterable<Result<Item>> itemList) throws Exception {
         var result = new ArrayList<FileDTO>();
         for (Result<Item> itemResult : itemList) {
-            result.add(new FileDTO(itemResult));
+            var file = new FileDTO(itemResult);
+            if (!file.isHidden) {
+                result.add(file);
+            }
         }
         return result;
     }

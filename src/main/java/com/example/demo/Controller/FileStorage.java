@@ -136,7 +136,7 @@ public class FileStorage {
     @PatchMapping("/renameFolder")
     String renameFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam String folderName, @RequestParam String folderNameNew,
                         @RequestParam Optional<String> path) {
-        minioService.renameFolder(minioService.generateStorageName(user.getId()), folderName, folderNameNew + "/", path.orElse(""));
+        minioService.renameFolder(minioService.generateStorageName(user.getId()), folderName, folderNameNew, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 

@@ -159,6 +159,8 @@ public class MinioService {
     }
 
     public Iterable<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) {
+        log.info(" ALLObjectFind file name :" + folderName + "  path  " + path);
+
         try {
             List<Result<Item>> result = new ArrayList<>();
             Iterable<Result<Item>> listFindObjects = listObjectsInFolder(bucketName, folderName, path);
@@ -189,6 +191,7 @@ public class MinioService {
             List<DeleteObject> objects = new LinkedList<>();
             var findList = findAllObjectInFolder(bucketName, folderName, path);
             for (Result<Item> itemResult : findList) {
+                log.info("DeleteAllObjectInFolder :" + itemResult.get().objectName());
                 objects.add(new DeleteObject(itemResult.get().objectName()));
             }
             Iterable<Result<DeleteError>> results =
@@ -209,14 +212,14 @@ public class MinioService {
     public void createFoldersForPath(String bucketName, String fullPathName) {
         var folderPath = "";
         var filename = fullPathName.substring(fullPathName.lastIndexOf("/") + 1);
-
         while (!fullPathName.equals(filename)) {
 
             var tk = new StringTokenizer(fullPathName, "/");
             folderPath = folderPath + tk.nextToken() + "/";
             fullPathName = fullPathName.substring(fullPathName.indexOf("/") + 1);
-
-            createFolder(bucketName, folderPath);
+            if (fullPathName.endsWith("/")) {
+                createFolder(bucketName, folderPath);
+            }
         }
     }
 
@@ -268,21 +271,29 @@ public class MinioService {
     public void renameObject(String bucketName, String fileName, String fileNameNew) {
         copyObject(bucketName, fileNameNew, fileName);
         deleteObject(bucketName, fileName);
-
         log.info(fileName + " rename to " + fileNameNew);
     }
 
+    @SneakyThrows
     public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) {
         try {
-            var findList = findAllObjectInFolder(bucketName, folderName, "");
+            var findList = findAllObjectInFolder(bucketName, folderName, path);
+            log.info("rename folder for " + folderName + " to " + folderNameNew + " path " + path);
             for (Result<Item> itemResult : findList) {
+                log.info(itemResult.get().objectName());
                 var sourceName = itemResult.get().objectName();
                 var nameNew = folderNameNew + sourceName.substring(folderName.length());
+                if (!folderNameNew.endsWith("/")) {
+                    folderNameNew = folderNameNew + '/';
+                }
                 createFoldersForPath(bucketName, folderNameNew);
-                renameObject(bucketName, itemResult.get().objectName(), nameNew);
+                if (!sourceName.endsWith("/")) {
+                    renameObject(bucketName, sourceName, nameNew);
+                }
+
             }
         } catch (Exception e) {
-            log.warn("renameFolder : " + e.getMessage());
+            throw e;
         }
     }
 }

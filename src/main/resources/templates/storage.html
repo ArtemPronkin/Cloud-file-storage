@@ -251,7 +251,7 @@
 
                                                 </div>
                                                 <div class="col col-lg-1 text-truncate">
-                                                    <p class="text-end" th:text="${objectNameWeb.substring(objectNameWeb.lastIndexOf('.'))}"></p>
+                                                    <p class="text-end" th:text="${object.getType()}"></p>
                                                 </div>
                                                 <div class="col col-lg-2 text-truncate">
                                                     <p class="text-end" th:text="${object.getSize()/1024}+' Кб'"></p>

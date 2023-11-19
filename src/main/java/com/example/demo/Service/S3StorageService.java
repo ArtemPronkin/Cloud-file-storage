@@ -215,10 +215,13 @@ public class S3StorageService {
 
     public void createFoldersForPath(String bucketName, String fullPathName) throws S3StorageException {
         var folderPath = "";
-        var filename = fullPathName.substring(fullPathName.lastIndexOf("/") + 1);
         var folderPathArray = fullPathName.split("/");
         log.info("createFoldersForPath Array Lenth : " + folderPathArray.length);
-        for (int i = 0; i < folderPathArray.length - 1; i++) {
+        var length = folderPathArray.length;
+        if (!fullPathName.endsWith("/")) {
+            length--;
+        }
+        for (int i = 0; i < length; i++) {
             folderPath = folderPath + folderPathArray[i] + "/";
             createFolder(bucketName, folderPath);
             log.info("createFoldersForPath create folder : " + folderPath);
@@ -282,20 +285,19 @@ public class S3StorageService {
         try {
             var findList = findAllObjectInFolder(bucketName, folderName, path);
             log.info("rename folder for " + folderName + " to " + folderNameNew + " path : " + path);
+            StringBuilder folderNameNewBuilder = new StringBuilder(folderNameNew);
             for (Result<Item> itemResult : findList) {
                 log.info(itemResult.get().objectName());
                 var sourceName = itemResult.get().objectName();
-                var nameNew = folderNameNew + sourceName.substring(folderName.length());
-                if (!folderNameNew.endsWith("/")) {
-                    folderNameNew = folderNameNew + '/';
+                var nameNew = folderNameNewBuilder + sourceName.substring(folderName.length());
+                if (!folderNameNewBuilder.toString().endsWith("/")) {
+                    folderNameNewBuilder.append('/');
                 }
-                createFoldersForPath(bucketName, folderNameNew);
-                if (!sourceName.endsWith("/")) {
-                    renameObject(bucketName, sourceName, nameNew);
-                    log.info("renameFolder : " + sourceName + " to " + nameNew);
-                }
+                renameObject(bucketName, sourceName, nameNew);
+                log.info("renameFolder : " + sourceName + " to " + nameNew);
 
             }
+            folderNameNew = folderNameNewBuilder.toString();
         } catch (Exception e) {
             throw new S3StorageException(e.getMessage());
         }

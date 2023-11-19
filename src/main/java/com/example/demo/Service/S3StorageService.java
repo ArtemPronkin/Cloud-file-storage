@@ -1,5 +1,6 @@
 package com.example.demo.Service;
 
+import com.example.demo.Exception.S3StorageException;
 import com.example.demo.model.FileDTO;
 import io.minio.*;
 import io.minio.messages.DeleteError;
@@ -13,7 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 @Slf4j
 @Component
@@ -38,7 +42,7 @@ public class S3StorageService {
 
     }
 
-    public ArrayList<FileDTO> searchFileDTO(String bucketName, String fileName) throws Exception {
+    public ArrayList<FileDTO> searchFileDTO(String bucketName, String fileName) throws S3StorageException {
         var allFiles = FileDTO.getFileDTOList(findAllObjectInFolder(bucketName, "", ""));
         ArrayList<FileDTO> result = new ArrayList<>();
         for (FileDTO fileDTO : allFiles) {
@@ -61,7 +65,7 @@ public class S3StorageService {
                         .build());
     }
 
-    public List<FileDTO> listPathObjectsDTO(String bucketName, String path) throws Exception {
+    public List<FileDTO> listPathObjectsDTO(String bucketName, String path) {
         return FileDTO.getFileDTOList(listPathObjects(bucketName, path));
     }
 
@@ -77,7 +81,7 @@ public class S3StorageService {
     }
 
 
-    public void makeBucket(String name) {
+    public void makeBucket(String name) throws S3StorageException {
         boolean found =
                 false;
         try {
@@ -95,11 +99,11 @@ public class S3StorageService {
                 log.info("Bucket " + name + " already exists.");
             }
         } catch (Exception e) {
-            log.warn("makeBucket : " + e.getMessage());
+            throw new S3StorageException(e.getMessage());
         }
     }
 
-    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) {
+    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageException {
         try {
             for (MultipartFile file
                     : multipartFiles) {
@@ -109,11 +113,11 @@ public class S3StorageService {
                         file.getInputStream());
             }
         } catch (Exception e) {
-            log.warn("putArrayObjects : " + e.getMessage());
+            throw new S3StorageException(e.getMessage());
         }
     }
 
-    public void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) {
+    public void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageException {
         try {
             minioClient.putObject(
                     PutObjectArgs.builder().bucket(bucketName).object(objectName).stream(
@@ -121,11 +125,11 @@ public class S3StorageService {
                             .contentType(contentType)
                             .build());
         } catch (Exception e) {
-            log.warn("put Object : " + e.getMessage());
+            throw new S3StorageException(e.getMessage());
         }
     }
 
-    public InputStream getObject(String bucketName, String objectName) {
+    public InputStream getObject(String bucketName, String objectName) throws S3StorageException {
         try {
             return minioClient.getObject(
                     GetObjectArgs.builder()
@@ -133,32 +137,33 @@ public class S3StorageService {
                             .object(objectName)
                             .build());
         } catch (Exception e) {
-            log.warn("get Object : " + e.getMessage());
-            return null;
+            throw new S3StorageException(e.getMessage());
         }
     }
 
-    public void deleteObject(String bucketName, String objectName) {
+    public void deleteObject(String bucketName, String objectName) throws S3StorageException {
         try {
             minioClient.removeObject(
                     RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
         } catch (Exception e) {
-            log.warn("deleteObject : " + e.getMessage());
+
+            throw new S3StorageException(e.getMessage());
         }
     }
 
-    public void createFolder(String bucketName, String folderName) {
+    public void createFolder(String bucketName, String folderName) throws S3StorageException {
         try {
             minioClient.putObject(
                     PutObjectArgs.builder().bucket(bucketName).object(folderName + "/").stream(
                                     new ByteArrayInputStream(new byte[]{}), 0, -1)
                             .build());
         } catch (Exception e) {
-            log.warn("create Folder : " + e.getMessage());
+
+            throw new S3StorageException(e.getMessage());
         }
     }
 
-    public Iterable<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) {
+    public Iterable<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) throws S3StorageException {
         log.info(" ALLObjectFind file name :" + folderName + "  path  " + path);
 
         try {
@@ -181,12 +186,11 @@ public class S3StorageService {
             }
             return result;
         } catch (Exception e) {
-            log.warn("findAllObjectInFolder :" + e.getMessage());
+            throw new S3StorageException(e.getMessage());
         }
-        return null;
     }
 
-    public void deleteFolder(String bucketName, String folderName, String path) {
+    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageException {
         try {
             List<DeleteObject> objects = new LinkedList<>();
             var findList = findAllObjectInFolder(bucketName, folderName, path);
@@ -204,31 +208,30 @@ public class S3StorageService {
             }
         } catch (
                 Exception e) {
-            log.warn("deleteFolder :" + e.getMessage());
+            throw new S3StorageException(e.getMessage());
         }
 
     }
 
-    public void createFoldersForPath(String bucketName, String fullPathName) {
+    public void createFoldersForPath(String bucketName, String fullPathName) throws S3StorageException {
         var folderPath = "";
         var filename = fullPathName.substring(fullPathName.lastIndexOf("/") + 1);
-        while (!fullPathName.equals(filename)) {
-
-            var tk = new StringTokenizer(fullPathName, "/");
-            folderPath = folderPath + tk.nextToken() + "/";
-            fullPathName = fullPathName.substring(fullPathName.indexOf("/") + 1);
-            if (fullPathName.endsWith("/")) {
-                createFolder(bucketName, folderPath);
-            }
+        var folderPathArray = fullPathName.split("/");
+        log.info("createFoldersForPath Array Lenth : " + folderPathArray.length);
+        for (int i = 0; i < folderPathArray.length - 1; i++) {
+            folderPath = folderPath + folderPathArray[i] + "/";
+            createFolder(bucketName, folderPath);
+            log.info("createFoldersForPath create folder : " + folderPath);
         }
     }
 
-    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) {
+    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageException {
         try {
             for (MultipartFile file :
                     multipartFiles) {
 
                 String fullPathName = file.getOriginalFilename();
+                log.info("PutFIle:  NameFile : " + fullPathName);
                 createFoldersForPath(bucketName, path + fullPathName);
                 putObject(bucketName,
                         path + file.getOriginalFilename(),
@@ -236,11 +239,11 @@ public class S3StorageService {
                         file.getInputStream());
             }
         } catch (Exception e) {
-            log.warn("Put Folder : " + e.getMessage());
+            throw new S3StorageException(e.getMessage());
         }
     }
 
-    public void copyObject(String bucketName, String objectName, String objectNameSource) {
+    public void copyObject(String bucketName, String objectName, String objectNameSource) throws S3StorageException {
         try {
             minioClient.copyObject(
                     CopyObjectArgs.builder()
@@ -253,11 +256,11 @@ public class S3StorageService {
                                             .build())
                             .build());
         } catch (Exception e) {
-            log.warn("CopyObject " + e.getMessage());
+            throw new S3StorageException(e.getMessage());
         }
     }
 
-    public void transferObject(String bucketName, String objectNameSource, String folderName) {
+    public void transferObject(String bucketName, String objectNameSource, String folderName) throws S3StorageException {
         createFolder(bucketName, folderName);
         String nameFile = objectNameSource.substring(objectNameSource.lastIndexOf("/") + 1);
         var fullNewPathName = folderName + nameFile;
@@ -268,7 +271,7 @@ public class S3StorageService {
         log.info(objectNameSource + " transfer to " + folderName + nameFile);
     }
 
-    public void renameObject(String bucketName, String fileName, String fileNameNew) {
+    public void renameObject(String bucketName, String fileName, String fileNameNew) throws S3StorageException {
         copyObject(bucketName, fileNameNew, fileName);
         deleteObject(bucketName, fileName);
         log.info(fileName + " rename to " + fileNameNew);
@@ -278,7 +281,7 @@ public class S3StorageService {
     public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) {
         try {
             var findList = findAllObjectInFolder(bucketName, folderName, path);
-            log.info("rename folder for " + folderName + " to " + folderNameNew + " path " + path);
+            log.info("rename folder for " + folderName + " to " + folderNameNew + " path : " + path);
             for (Result<Item> itemResult : findList) {
                 log.info(itemResult.get().objectName());
                 var sourceName = itemResult.get().objectName();
@@ -289,11 +292,12 @@ public class S3StorageService {
                 createFoldersForPath(bucketName, folderNameNew);
                 if (!sourceName.endsWith("/")) {
                     renameObject(bucketName, sourceName, nameNew);
+                    log.info("renameFolder : " + sourceName + " to " + nameNew);
                 }
 
             }
         } catch (Exception e) {
-            throw e;
+            throw new S3StorageException(e.getMessage());
         }
     }
 }

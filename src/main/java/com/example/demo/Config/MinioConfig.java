@@ -1,4 +1,5 @@
 package com.example.demo.Config;
+
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,8 +19,8 @@ public class MinioConfig {
         try {
             MinioClient minioClient =
                     MinioClient.builder()
-                            .endpoint("http://localhost:9000")
-                            .credentials(accessKey,accessSecret)
+                            .endpoint(minioUrl)
+                            .credentials(accessKey, accessSecret)
                             .build();
             return minioClient;
         } catch (Exception e) {

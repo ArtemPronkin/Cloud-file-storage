@@ -3,6 +3,7 @@ package com.example.demo.model;
 import io.minio.Result;
 import io.minio.messages.Item;
 import lombok.Data;
+import lombok.SneakyThrows;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -18,7 +19,8 @@ public class FileDTO {
     String type;
     boolean isHidden;
 
-    public FileDTO(Result<Item> result) throws Exception {
+    @SneakyThrows
+    public FileDTO(Result<Item> result) {
         var item = result.get();
         this.isDir = item.isDir();
         this.objectName = item.objectName();
@@ -38,7 +40,7 @@ public class FileDTO {
         }
     }
 
-    public static List<FileDTO> getFileDTOList(Iterable<Result<Item>> itemList) throws Exception {
+    public static List<FileDTO> getFileDTOList(Iterable<Result<Item>> itemList) {
         var result = new ArrayList<FileDTO>();
         for (Result<Item> itemResult : itemList) {
             var file = new FileDTO(itemResult);

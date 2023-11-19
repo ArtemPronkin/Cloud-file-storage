@@ -1,8 +1,9 @@
 package com.example.demo.Controller;
 
 
-import com.example.demo.Exceptions.UserUniqueEmailExceptions;
-import com.example.demo.Exceptions.UserUniqueUserNameExceptions;
+import com.example.demo.Exception.S3StorageException;
+import com.example.demo.Exception.UserUniqueEmailException;
+import com.example.demo.Exception.UserUniqueUserNameException;
 import com.example.demo.Service.RegistrationService;
 import com.example.demo.Service.S3StorageService;
 import com.example.demo.model.User;
@@ -34,15 +35,15 @@ public class Registration {
     @PostMapping("/registration")
     String createNewProfile(@ModelAttribute("user") @Valid User user,
                             BindingResult bindingResult,
-                            Model model) {
+                            Model model) throws S3StorageException {
         if (bindingResult.hasErrors()) {
             return "/registration";
         }
         try {
             user = registration.registration(user);
-        } catch (UserUniqueUserNameExceptions e) {
+        } catch (UserUniqueUserNameException e) {
             bindingResult.rejectValue("username", "", "This username is already taken");
-        } catch (UserUniqueEmailExceptions e) {
+        } catch (UserUniqueEmailException e) {
             bindingResult.rejectValue("email", "", "This email is already taken");
         }
         if (bindingResult.hasErrors()) {

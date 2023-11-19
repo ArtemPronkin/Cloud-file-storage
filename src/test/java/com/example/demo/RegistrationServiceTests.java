@@ -1,7 +1,7 @@
 package com.example.demo;
 
-import com.example.demo.Exceptions.UserUniqueEmailExceptions;
-import com.example.demo.Exceptions.UserUniqueUserNameExceptions;
+import com.example.demo.Exception.UserUniqueEmailException;
+import com.example.demo.Exception.UserUniqueUserNameException;
 import com.example.demo.Service.MyUserDetailsService;
 import com.example.demo.Service.RegistrationService;
 import com.example.demo.model.User;
@@ -28,28 +28,28 @@ public class RegistrationServiceTests {
     MyUserDetailsService myUserDetailsService;
 
     @Test
-    void registrationTest() throws UserUniqueUserNameExceptions, UserUniqueEmailExceptions {
+    void registrationTest() throws UserUniqueUserNameException, UserUniqueEmailException {
         String name = "vasya";
         registration.registration(new User(name, "vasya@vasya", "password"));
         Assertions.assertEquals(name, myUserDetailsService.loadUserByUsername("vasya").getUsername());
     }
 
     @Test
-    void uniqueUsernameTest() throws UserUniqueUserNameExceptions, UserUniqueEmailExceptions {
+    void uniqueUsernameTest() throws UserUniqueUserNameException, UserUniqueEmailException {
         String name = "vasya2";
         String email = "vasya@vasya2";
         String password = "pass";
         var user = new User(name, email, password);
         registration.registration(user);
-        Assertions.assertThrows(UserUniqueEmailExceptions.class,
+        Assertions.assertThrows(UserUniqueEmailException.class,
                 () -> registration.registration(new User(name + "test", email, password)));
-        Assertions.assertThrows(UserUniqueUserNameExceptions.class,
+        Assertions.assertThrows(UserUniqueUserNameException.class,
                 () -> registration.registration(new User(name, email + "test", password)));
 
     }
 
     @Test
-    void uniqueValidTest() throws UserUniqueUserNameExceptions, UserUniqueEmailExceptions {
+    void uniqueValidTest() throws UserUniqueUserNameException, UserUniqueEmailException {
         String name = "vasya3";
         String email = "notEmail";
         String password = "pass";

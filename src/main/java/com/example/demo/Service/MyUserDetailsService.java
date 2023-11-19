@@ -23,5 +23,5 @@ public class MyUserDetailsService implements UserDetailsService {
         return new MyPrincipal(optionalUser.get());
     }
 
-
+    
 }

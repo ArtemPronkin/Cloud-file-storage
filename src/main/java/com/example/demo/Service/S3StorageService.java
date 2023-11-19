@@ -163,7 +163,7 @@ public class S3StorageService {
         }
     }
 
-    public Iterable<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) throws S3StorageException {
+    public List<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) throws S3StorageException {
         log.info(" ALLObjectFind file name :" + folderName + "  path  " + path);
 
         try {

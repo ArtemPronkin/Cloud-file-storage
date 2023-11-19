@@ -2,36 +2,48 @@ package com.example.demo;
 
 import com.example.demo.Exception.S3StorageException;
 import com.example.demo.Service.S3StorageService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.web.multipart.MultipartFile;
+import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.IOException;
 import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @SpringBootTest
 public class S3StorageTests {
-    //    @Container
-//    @ServiceConnection
-//    static MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql");
-//    @Container
-//    static MinIOContainer container = new MinIOContainer("minio/minio:RELEASE.2023-09-04T19-57-37Z")
-//            .withEnv("MINIO_ROOT_USER", "cloudStorage")
-//            .withEnv("MINIO_ROOT_PASSWORD", "minio123")
-//            .withCommand("server /data")
-//            .withExposedPorts(9000);
-//    @DynamicPropertySource
-//    static void datasourceProperties(DynamicPropertyRegistry registry) {
-//        registry.add("minio.url", container::getS3URL);
-//        System.out.println(container.getS3URL());
-//    }
+    @Container
+    @ServiceConnection
+    static MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql");
+    @Container
+    static MinIOContainer minIOContainer = new MinIOContainer("minio/minio:RELEASE.2023-09-04T19-57-37Z")
+            .withEnv("MINIO_ROOT_USER", "cloudStorage")
+            .withEnv("MINIO_ROOT_PASSWORD", "minio123")
+            .withCommand("server /data")
+            .withExposedPorts(9000);
     @Autowired
     S3StorageService s3StorageService;
     String bucketName;
 
+    @DynamicPropertySource
+    static void datasourceProperties(DynamicPropertyRegistry registry) {
+        registry.add("minio.url", minIOContainer::getS3URL);
+        System.out.println(minIOContainer.getS3URL());
+    }
 
     @BeforeEach
     void beforeEach() throws S3StorageException {
@@ -43,13 +55,16 @@ public class S3StorageTests {
     @Test
     void storageSearchTest() throws S3StorageException {
         s3StorageService.createFolder(bucketName, "folder");
-        Assertions.assertEquals(1, s3StorageService.searchFileDTO(bucketName, "folder").size());
+        assertEquals(1, s3StorageService.searchFileDTO(bucketName, "folder").size());
+
         s3StorageService.createFolder(bucketName, "folder2");
-        Assertions.assertEquals(2, s3StorageService.searchFileDTO(bucketName, "folder").size());
+        assertEquals(2, s3StorageService.searchFileDTO(bucketName, "folder").size());
+
         s3StorageService.createFolder(bucketName, "folder/folder2");
-        Assertions.assertEquals(3, s3StorageService.searchFileDTO(bucketName, "folder").size());
+        assertEquals(3, s3StorageService.searchFileDTO(bucketName, "folder").size());
+
         s3StorageService.createFolder(bucketName, "folder/new");
-        Assertions.assertEquals(3, s3StorageService.searchFileDTO(bucketName, "folder").size());
+        assertEquals(3, s3StorageService.searchFileDTO(bucketName, "folder").size());
     }
 
     @Test
@@ -59,10 +74,11 @@ public class S3StorageTests {
         s3StorageService.createFolder(bucketName, "test/2/3");
         s3StorageService.createFolder(bucketName, "test/2/3/4");
         s3StorageService.deleteFolder(bucketName, "test", "");
-        Assertions.assertEquals(0, s3StorageService.searchFileDTO(bucketName, "test").size());
-        Assertions.assertEquals(0, s3StorageService.searchFileDTO(bucketName, "2").size());
-        Assertions.assertEquals(0, s3StorageService.searchFileDTO(bucketName, "3").size());
-        Assertions.assertEquals(0, s3StorageService.searchFileDTO(bucketName, "4").size());
+
+        assertEquals(0, s3StorageService.searchFileDTO(bucketName, "test").size());
+        assertEquals("test/2/3/4/", s3StorageService.searchFileDTO(bucketName, "4").get(0).getObjectName());
+        assertEquals("test/2/3/", s3StorageService.searchFileDTO(bucketName, "3").get(0).getObjectName());
+        assertEquals("test/2/", s3StorageService.searchFileDTO(bucketName, "2").get(0).getObjectName());
     }
 
     @Test
@@ -71,18 +87,74 @@ public class S3StorageTests {
         s3StorageService.createFolder(bucketName, "test/2");
         s3StorageService.createFolder(bucketName, "test/2/3");
         s3StorageService.createFolder(bucketName, "test/2/3/4/");
+
         s3StorageService.renameFolder(bucketName, "test/", "NewName/", "");
-        Assertions.assertEquals(1, s3StorageService.searchFileDTO(bucketName, "NewName").size());
-        Assertions.assertEquals("NewName/2/3/4/", s3StorageService.searchFileDTO(bucketName, "4").get(0).getObjectName());
-        Assertions.assertEquals("NewName/2/3/", s3StorageService.searchFileDTO(bucketName, "3").get(0).getObjectName());
-        Assertions.assertEquals("NewName/2/", s3StorageService.searchFileDTO(bucketName, "2").get(0).getObjectName());
+
+        assertEquals("NewName/2/3/4/", s3StorageService.searchFileDTO(bucketName, "4").get(0).getObjectName());
+        assertEquals("NewName/2/3/", s3StorageService.searchFileDTO(bucketName, "3").get(0).getObjectName());
+        assertEquals("NewName/2/", s3StorageService.searchFileDTO(bucketName, "2").get(0).getObjectName());
     }
 
     @Test
     void storageCreateFoldersForPathTest() throws S3StorageException {
-        s3StorageService.createFoldersForPath(bucketName, "test/2/3/4/5/6/7/test.exe");
-        Assertions.assertEquals("test/2/3/4/5/", s3StorageService.searchFileDTO(bucketName, "5").get(0).getObjectName());
+        s3StorageService.createFoldersForPath(bucketName, "test/2/3/4/5/6/7/");
+        assertEquals("test/2/3/4/5/", s3StorageService.searchFileDTO(bucketName, "5").get(0).getObjectName());
+    }
 
+    @Test
+    void storagePutObjectTest() throws S3StorageException, IOException {
+        var name = "hello.txt";
+        var file = getMultiPartFile(name);
 
+        s3StorageService.putObject(bucketName, file.getOriginalFilename(), file.getContentType(), file.getInputStream());
+
+        assertEquals(file.getOriginalFilename(),
+                s3StorageService.searchFileDTO(bucketName, "hello.txt").get(0).getObjectName());
+
+        name = "folder/folder/hello2.txt";
+        file = getMultiPartFile(name);
+
+        s3StorageService.putObject(bucketName, file.getOriginalFilename(), file.getContentType(), file.getInputStream());
+
+        assertEquals(file.getOriginalFilename(),
+                s3StorageService.searchFileDTO(bucketName, "hello2.txt").get(0).getObjectName());
+    }
+
+    @Test
+    void storagePutFolderTest() throws S3StorageException, IOException {
+        var file1 = getMultiPartFile("folder1/folder2/folder3/folder4/hello.txt");
+        var file2 = getMultiPartFile("folder1/folder2/folder3/folder4/hello2.txt");
+        var file3 = getMultiPartFile("folder1/folder2/folder3/folder4/hello3.txt");
+        var files = new MultipartFile[]{file1, file2, file3};
+        var path = "path/";
+        s3StorageService.putFolder(bucketName, files, path);
+        assertEquals(path + file1.getOriginalFilename(),
+                s3StorageService.searchFileDTO(bucketName, "hello.txt").get(0).getObjectName());
+        assertEquals(path + file2.getOriginalFilename(),
+                s3StorageService.searchFileDTO(bucketName, "hello2.txt").get(0).getObjectName());
+        assertEquals(path + file3.getOriginalFilename(),
+                s3StorageService.searchFileDTO(bucketName, "hello3.txt").get(0).getObjectName());
+        assertEquals(path + "folder1/folder2/folder3/folder4/",
+                s3StorageService.searchFileDTO(bucketName, "folder4").get(0).getObjectName());
+        assertEquals(path + "folder1/folder2/folder3/",
+                s3StorageService.searchFileDTO(bucketName, "folder3").get(0).getObjectName());
+        assertEquals(path + "folder1/folder2/",
+                s3StorageService.searchFileDTO(bucketName, "folder2").get(0).getObjectName());
+        assertEquals(path + "folder1/",
+                s3StorageService.searchFileDTO(bucketName, "folder1").get(0).getObjectName());
+
+        assertTrue(s3StorageService.findAllObjectInFolder(bucketName, "", "").size() > 0);
+        s3StorageService.deleteFolder(bucketName, "path/", "");
+        assertEquals(0, s3StorageService.findAllObjectInFolder(bucketName, "", "").size());
+    }
+
+    MultipartFile getMultiPartFile(String name) {
+
+        return new MockMultipartFile(
+                "file",
+                name,
+                MediaType.TEXT_PLAIN_VALUE,
+                "Hello, World!".getBytes()
+        );
     }
 }

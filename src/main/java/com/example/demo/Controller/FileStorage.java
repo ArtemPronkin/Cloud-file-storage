@@ -1,7 +1,7 @@
 package com.example.demo.Controller;
 
-import com.example.demo.Service.MinioService;
 import com.example.demo.Service.MyPrincipal;
+import com.example.demo.Service.S3StorageService;
 import com.example.demo.model.FileDTO;
 import com.example.demo.util.PathNameUtils;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/storage")
 public class FileStorage {
     @Autowired
-    MinioService minioService;
+    S3StorageService s3StorageService;
     @Autowired
     PathNameUtils pathNameUtils;
 
@@ -34,10 +34,10 @@ public class FileStorage {
         List<FileDTO> listDTO;
         if (search.isPresent() && !search.get().isEmpty()) {
             listDTO
-                    = minioService.searchFileDTO(minioService.generateStorageName(user.getId()), search.get());
+                    = s3StorageService.searchFileDTO(s3StorageService.generateStorageName(user.getId()), search.get());
         } else {
             listDTO
-                    = minioService.listPathObjectsDTO(minioService.generateStorageName(user.getId()), path.orElse(""));
+                    = s3StorageService.listPathObjectsDTO(s3StorageService.generateStorageName(user.getId()), path.orElse(""));
         }
         List<FileDTO> collectionSortDTO
                 = null;
@@ -72,7 +72,7 @@ public class FileStorage {
     @GetMapping(value = "/download")
     void getFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, HttpServletResponse response) {
 
-        var file = minioService.getObject(minioService.generateStorageName(user.getId()), fileName);
+        var file = s3StorageService.getObject(s3StorageService.generateStorageName(user.getId()), fileName);
         var downloadName = pathNameUtils.encode(fileName.substring(fileName.lastIndexOf("/") + 1));
         response.setHeader("Content-Disposition", "attachment; filename=" + downloadName);
         response.setStatus(HttpServletResponse.SC_OK);
@@ -86,34 +86,34 @@ public class FileStorage {
     @PostMapping("/putFile")
     String putFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) {
         log.info("put on " + path.orElse("/"));
-        minioService.putArrayObjects(minioService.generateStorageName(user.getId()), files, path.orElse(""));
+        s3StorageService.putArrayObjects(s3StorageService.generateStorageName(user.getId()), files, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @PostMapping("/putFolder")
     String putFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) {
         log.info("put on " + path.orElse("/"));
-        minioService.putFolder(minioService.generateStorageName(user.getId()), files, path.orElse(""));
+        s3StorageService.putFolder(s3StorageService.generateStorageName(user.getId()), files, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @DeleteMapping(value = "/delete")
     String deleteFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, @RequestParam Optional<String> path) {
-        minioService.deleteObject(minioService.generateStorageName(user.getId()), fileName);
+        s3StorageService.deleteObject(s3StorageService.generateStorageName(user.getId()), fileName);
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @DeleteMapping(value = "/deleteFolder")
     String deleteAllFileInFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("folderName") String folderName,
                                  @RequestParam Optional<String> path) {
-        minioService.deleteFolder(minioService.generateStorageName(user.getId()), folderName, path.orElse(""));
+        s3StorageService.deleteFolder(s3StorageService.generateStorageName(user.getId()), folderName, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @PostMapping("/createFolder")
     String createFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("folderName") Optional<String> folderName, @RequestParam Optional<String> path) {
         if (folderName.isPresent() && !folderName.get().isBlank()) {
-            minioService.createFoldersForPath(minioService.generateStorageName(user.getId()), path.orElse("") + folderName.orElse("") + "/");
+            s3StorageService.createFoldersForPath(s3StorageService.generateStorageName(user.getId()), path.orElse("") + folderName.orElse("") + "/");
         }
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
@@ -121,14 +121,14 @@ public class FileStorage {
     @PatchMapping("/transferFile")
     String transferFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName,
                         @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) {
-        minioService.transferObject(minioService.generateStorageName(user.getId()), fileName, folderName.orElse("") + "/");
+        s3StorageService.transferObject(s3StorageService.generateStorageName(user.getId()), fileName, folderName.orElse("") + "/");
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @PatchMapping("/renameFile")
     String renameFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, @RequestParam String fileNameNew,
                       @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) {
-        minioService.renameObject(minioService.generateStorageName(user.getId()),
+        s3StorageService.renameObject(s3StorageService.generateStorageName(user.getId()),
                 fileName, path.orElse("") + fileNameNew);
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
@@ -136,7 +136,7 @@ public class FileStorage {
     @PatchMapping("/renameFolder")
     String renameFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam String folderName, @RequestParam String folderNameNew,
                         @RequestParam Optional<String> path) {
-        minioService.renameFolder(minioService.generateStorageName(user.getId()), folderName, folderNameNew, path.orElse(""));
+        s3StorageService.renameFolder(s3StorageService.generateStorageName(user.getId()), folderName, folderNameNew, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 

@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class FileDTO {
@@ -37,7 +38,7 @@ public class FileDTO {
         }
     }
 
-    public static ArrayList<FileDTO> getFileDTOList(Iterable<Result<Item>> itemList) throws Exception {
+    public static List<FileDTO> getFileDTOList(Iterable<Result<Item>> itemList) throws Exception {
         var result = new ArrayList<FileDTO>();
         for (Result<Item> itemResult : itemList) {
             var file = new FileDTO(itemResult);

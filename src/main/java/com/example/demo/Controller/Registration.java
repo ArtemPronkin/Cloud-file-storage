@@ -1,9 +1,10 @@
 package com.example.demo.Controller;
 
 
-import com.example.demo.Service.MinioService;
-import com.example.demo.model.Role;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.Exceptions.UserUniqueEmailExceptions;
+import com.example.demo.Exceptions.UserUniqueUserNameExceptions;
+import com.example.demo.Service.RegistrationService;
+import com.example.demo.Service.S3StorageService;
 import com.example.demo.model.User;
 import com.example.demo.util.UserValidator;
 import jakarta.validation.Valid;
@@ -14,21 +15,15 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Collections;
 
 @Controller
 public class Registration {
     @Autowired
-    private UserRepository userRepository;
+    S3StorageService s3StorageService;
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    RegistrationService registration;
     @Autowired
     private UserValidator userValidator;
-    @Autowired
-    MinioService minioService;
 
     @GetMapping("/registration")
     String showRegPage(@ModelAttribute("user") User user) {
@@ -37,18 +32,23 @@ public class Registration {
     }
 
     @PostMapping("/registration")
-    String createNewProfile(@ModelAttribute("user") @Valid  User user,
-                                  BindingResult bindingResult,
-                                  RedirectAttributes redirectAttributes,
-                                  Model model) {
-        userValidator.validate(user,bindingResult);
-        if (bindingResult.hasErrors()){
+    String createNewProfile(@ModelAttribute("user") @Valid User user,
+                            BindingResult bindingResult,
+                            Model model) {
+        if (bindingResult.hasErrors()) {
             return "/registration";
         }
-        user.setRoles(Collections.singleton(Role.ROLE_USER));
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user = userRepository.save(user);
-        minioService.makeBucket(minioService.generateStorageName(user.getId()));
+        try {
+            user = registration.registration(user);
+        } catch (UserUniqueUserNameExceptions e) {
+            bindingResult.rejectValue("username", "", "This username is already taken");
+        } catch (UserUniqueEmailExceptions e) {
+            bindingResult.rejectValue("email", "", "This email is already taken");
+        }
+        if (bindingResult.hasErrors()) {
+            return "/registration";
+        }
+        s3StorageService.makeBucket(s3StorageService.generateStorageName(user.getId()));
         return "redirect:/login";
     }
 }

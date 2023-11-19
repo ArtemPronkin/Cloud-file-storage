@@ -17,7 +17,7 @@ import java.util.*;
 
 @Slf4j
 @Component
-public class MinioService {
+public class S3StorageService {
     @Autowired
     MinioClient minioClient;
 
@@ -38,7 +38,7 @@ public class MinioService {
 
     }
 
-    public List<FileDTO> searchFileDTO(String bucketName, String fileName) throws Exception {
+    public ArrayList<FileDTO> searchFileDTO(String bucketName, String fileName) throws Exception {
         var allFiles = FileDTO.getFileDTOList(findAllObjectInFolder(bucketName, "", ""));
         ArrayList<FileDTO> result = new ArrayList<>();
         for (FileDTO fileDTO : allFiles) {
@@ -61,7 +61,7 @@ public class MinioService {
                         .build());
     }
 
-    public ArrayList<FileDTO> listPathObjectsDTO(String bucketName, String path) throws Exception {
+    public List<FileDTO> listPathObjectsDTO(String bucketName, String path) throws Exception {
         return FileDTO.getFileDTOList(listPathObjects(bucketName, path));
     }
 

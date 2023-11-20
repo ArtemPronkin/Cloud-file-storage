@@ -30,7 +30,7 @@ public class FileDTO {
         } else this.objectNameWeb = item.objectName().substring(item.objectName().lastIndexOf("/") + 1);
         this.size = item.size();
         if (!isDir) {
-            this.lastModified = item.lastModified().format(DateTimeFormatter.ofPattern("MM.dd.yy HH:mm"));
+            this.lastModified = item.lastModified().format(DateTimeFormatter.ofPattern("dd.MM.yy HH:mm"));
         } else lastModified = "";
         if (isDir) {
             type = "";

@@ -40,29 +40,8 @@ public class FileStorage {
             listDTO
                     = s3StorageService.listPathObjectsDTO(s3StorageService.generateStorageName(user.getId()), path.orElse(""));
         }
-        List<FileDTO> collectionSortDTO
-                = null;
-        if (sort.isEmpty() || sort.get().equals("name")) {
-            collectionSortDTO
-                    = listDTO
-                    .stream().sorted((p1, p2) -> p1.getObjectName().toLowerCase().compareTo(p2.getObjectName().toLowerCase())).collect(Collectors.toList());
-        }
-        if (sort.isPresent() && sort.get().equals("size")) {
-            collectionSortDTO
-                    = listDTO
-                    .stream().sorted((p1, p2) -> p1.getSize().compareTo(p2.getSize())).collect(Collectors.toList());
-        }
-        if (sort.isPresent() && sort.get().equals("date")) {
-            collectionSortDTO
-                    = listDTO
-                    .stream().sorted((p1, p2) -> p1.getLastModified().compareTo(p2.getLastModified())).collect(Collectors.toList());
-        }
-        if (sort.isPresent() && sort.get().equals("type")) {
-            collectionSortDTO
-                    = listDTO
-                    .stream().sorted((p1, p2) -> p1.getType().compareTo(p2.getType())).collect(Collectors.toList());
-        }
-        model.addAttribute("objectList", collectionSortDTO
+        listDTO = sort(listDTO, sort);
+        model.addAttribute("objectList", listDTO
         );
         model.addAttribute("path", path.orElse(""));
         model.addAttribute("search", search.orElse(""));
@@ -145,6 +124,35 @@ public class FileStorage {
     String postSearch(@AuthenticationPrincipal MyPrincipal user, @RequestParam Optional<String> search,
                       @RequestParam Optional<String> path, Model model) {
         return "redirect:/storage?search=" + pathNameUtils.encode(search.orElse(""));
+    }
+
+    private List<FileDTO> sort(List<FileDTO> listDTO, Optional<String> sort) {
+        if (sort.isEmpty() || sort.get().equals("name")) {
+            listDTO
+                    = listDTO
+                    .stream().sorted((p1, p2) -> p1.getObjectName().toLowerCase()
+                            .compareTo(p2.getObjectName().toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+        if (sort.isPresent() && sort.get().equals("size")) {
+            listDTO
+                    = listDTO
+                    .stream().sorted((p1, p2) -> p1.getSize().compareTo(p2.getSize()))
+                    .collect(Collectors.toList());
+        }
+        if (sort.isPresent() && sort.get().equals("date")) {
+            listDTO
+                    = listDTO
+                    .stream().sorted((p1, p2) -> p1.getLastModified().compareTo(p2.getLastModified()))
+                    .collect(Collectors.toList());
+        }
+        if (sort.isPresent() && sort.get().equals("type")) {
+            listDTO
+                    = listDTO
+                    .stream().sorted((p1, p2) -> p1.getType().compareTo(p2.getType()))
+                    .collect(Collectors.toList());
+        }
+        return listDTO;
     }
 
 }

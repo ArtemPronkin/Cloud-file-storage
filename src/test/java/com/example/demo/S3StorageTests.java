@@ -42,14 +42,12 @@ public class S3StorageTests {
     @DynamicPropertySource
     static void datasourceProperties(DynamicPropertyRegistry registry) {
         registry.add("minio.url", minIOContainer::getS3URL);
-        System.out.println(minIOContainer.getS3URL());
     }
 
     @BeforeEach
     void beforeEach() throws S3StorageException {
         bucketName = UUID.randomUUID().toString();
         s3StorageService.makeBucket(bucketName);
-        System.out.println(bucketName);
     }
 
     @Test
@@ -73,12 +71,19 @@ public class S3StorageTests {
         s3StorageService.createFolder(bucketName, "test/2");
         s3StorageService.createFolder(bucketName, "test/2/3");
         s3StorageService.createFolder(bucketName, "test/2/3/4");
-        s3StorageService.deleteFolder(bucketName, "test", "");
 
-        assertEquals(0, s3StorageService.searchFileDTO(bucketName, "test").size());
+
         assertEquals("test/2/3/4/", s3StorageService.searchFileDTO(bucketName, "4").get(0).getObjectName());
         assertEquals("test/2/3/", s3StorageService.searchFileDTO(bucketName, "3").get(0).getObjectName());
         assertEquals("test/2/", s3StorageService.searchFileDTO(bucketName, "2").get(0).getObjectName());
+
+        s3StorageService.deleteFolder(bucketName, "test/", "");
+
+        assertEquals(0, s3StorageService.searchFileDTO(bucketName, "test").size());
+        assertEquals(0, s3StorageService.searchFileDTO(bucketName, "2").size());
+        assertEquals(0, s3StorageService.searchFileDTO(bucketName, "3").size());
+        assertEquals(0, s3StorageService.searchFileDTO(bucketName, "4").size());
+
     }
 
     @Test

@@ -68,6 +68,8 @@ public class SessionTest {
                 .toArray()[0]
                 .toString()
                 .contains("spring:session:sessions"));
+        jedis.close();
+        jedisPool.close();
 
     }
 

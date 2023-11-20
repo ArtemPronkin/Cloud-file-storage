@@ -1,6 +1,5 @@
 package com.example.demo.Service;
 
-import com.example.demo.model.Role;
 import com.example.demo.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,11 +18,9 @@ public class MyPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        var roles = user.getRoles();
+        var role = user.getRole();
         Set<SimpleGrantedAuthority> authorities = new HashSet<>();
-        for (Role role : roles) {
-            authorities.add(new SimpleGrantedAuthority(role.name()));
-        }
+        authorities.add(new SimpleGrantedAuthority(role.name()));
         return authorities;
     }
 

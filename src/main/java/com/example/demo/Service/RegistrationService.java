@@ -11,8 +11,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-
 @Slf4j
 @Service
 public class RegistrationService {
@@ -23,7 +21,7 @@ public class RegistrationService {
     private UserRepository userRepository;
 
     public User registration(User user) throws UserUniqueUserNameException, UserUniqueEmailException {
-        user.setRoles(Collections.singleton(Role.ROLE_USER));
+        user.setRole(Role.ROLE_USER);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         try {
             return userRepository.save(user);

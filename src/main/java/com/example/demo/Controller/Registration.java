@@ -37,7 +37,7 @@ public class Registration {
                             BindingResult bindingResult,
                             Model model) throws S3StorageException {
         if (bindingResult.hasErrors()) {
-            return "/registration";
+            return "registration";
         }
         try {
             user = registration.registration(user);
@@ -47,7 +47,7 @@ public class Registration {
             bindingResult.rejectValue("email", "", "This email is already taken");
         }
         if (bindingResult.hasErrors()) {
-            return "/registration";
+            return "registration";
         }
         s3StorageService.makeBucket(s3StorageService.generateStorageName(user.getId()));
         return "redirect:/login";

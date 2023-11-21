@@ -34,6 +34,8 @@
                 </p>
             </div>
 
+            <div th:replace="~{fragments/error}"></div>
+
             <div class="container">
 
 
@@ -51,7 +53,8 @@
                         <p class="text-end"><a th:href="@{'/storage?sort=size&search='+${search}}">Размер</a></p>
                     </div>
                     <div class="col col-lg-2 text-wrap">
-                        <p class="text-end" ><a th:href="@{'/storage?sort=date&search='+${search}}">Дата изменения</a></p>
+                        <p class="text-end"><a th:href="@{'/storage?sort=date&search='+${search}}">Дата изменения</a>
+                        </p>
                     </div>
                 </div>
 
@@ -160,8 +163,8 @@
                                                                 data-bs-toggle="dropdown" type="button">
                                                             <span class="visually-hidden">Переключатель выпадающего списка</span>
                                                         </button>
-                                                        <ul  aria-labelledby="dropdownMenuButton1"
-                                                             class="dropdown-menu dropdown-menu-end dropdown-menu-lg-start px-1 py-1">
+                                                        <ul aria-labelledby="dropdownMenuButton1"
+                                                            class="dropdown-menu dropdown-menu-end dropdown-menu-lg-start px-1 py-1">
                                                             <li>
                                                                 <img th:src="@{img/file.png}"/>
                                                                 <a role="button"
@@ -173,9 +176,9 @@
                                                             <li>
                                                                 <div class="px-1 py-1">
                                                                     <a class="btn btn-success" role="button"
-                                                                th:href="@{'/storage/download?fileName='+${objectName}}">
-                                                                Скачать
-                                                                </a>
+                                                                       th:href="@{'/storage/download?fileName='+${objectName}}">
+                                                                        Скачать
+                                                                    </a>
                                                                 </div>
 
                                                             </li>
@@ -185,7 +188,8 @@
                                                                       th:method="DELETE">
                                                                     <input name="fileName" th:value="${objectName}"
                                                                            type="hidden">
-                                                                    <input class="btn-sm btn-danger px-1 py-1" role="button"
+                                                                    <input class="btn-sm btn-danger px-1 py-1"
+                                                                           role="button"
                                                                            type="submit"
                                                                            value="Удалить файл"/>
                                                                 </form>
@@ -200,19 +204,20 @@
                                                                     <input name="fileName"
                                                                            th:value="${objectName}"
                                                                            type="hidden"/>
-                                                                        <label>Имя новой папки
-                                                                            <input name="folderName" th:value="${path}"
-                                                                                   type="text">
-                                                                        </label>
-                                                                        <button class="btn-sm  btn-primary text-end "
-                                                                                type="submit">
-                                                                            Перенести
-                                                                            файл
-                                                                        </button>
+                                                                    <label>Имя новой папки
+                                                                        <input name="folderName" th:value="${path}"
+                                                                               type="text">
+                                                                    </label>
+                                                                    <button class="btn-sm  btn-primary text-end "
+                                                                            type="submit">
+                                                                        Перенести
+                                                                        файл
+                                                                    </button>
                                                                 </form>
                                                             </li>
                                                             <li>
-                                                                <form class="px-1 py-1"  th:action="@{/storage/renameFile}"
+                                                                <form class="px-1 py-1"
+                                                                      th:action="@{/storage/renameFile}"
                                                                       th:method="PATCH">
 
 

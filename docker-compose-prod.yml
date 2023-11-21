@@ -31,7 +31,8 @@ services:
       - ~/data/redis:/var/lib/redis
       - ~/data/redis/config:/usr/local/etc/redis/redis.conf
   web:
-    build: .
+    container_name: Storage
+    image: temas8150/javaweb
     ports:
       - 8080:8080
     environment:

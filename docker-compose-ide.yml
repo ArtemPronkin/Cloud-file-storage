@@ -4,6 +4,9 @@ services:
   minio:
     image: minio/minio:latest
     command: server --console-address ":9001" /data/
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: cloudStorage
       MINIO_ROOT_PASSWORD: minio123
@@ -15,6 +18,8 @@ services:
       timeout: 20s
       retries: 3
   mysql:
+    ports:
+      - 3306:3306
     image: mysql:8
     container_name: java-mysql
     environment:
@@ -30,23 +35,8 @@ services:
     volumes:
       - ~/data/redis:/var/lib/redis
       - ~/data/redis/config:/usr/local/etc/redis/redis.conf
-  web:
-    build: .
     ports:
-      - 8080:8080
-    environment:
-      spring.jpa.database-platform: org.hibernate.dialect.MySQLDialect
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/security
-      spring.data.redis.host: redis
-      spring.data.redis.port: 6379
-      MINIO_URL: http://minio:9000
-      MINIO_ACCESS_NAME: cloudStorage
-      MINIO_ACCESS_SECRET: minio123
-
-    depends_on:
-      - mysql
-      - redis
-      - minio
+      - "6379:6379"
 volumes:
   minio-storage:
 

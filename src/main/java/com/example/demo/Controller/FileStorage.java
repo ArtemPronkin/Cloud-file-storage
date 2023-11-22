@@ -31,7 +31,7 @@ public class FileStorage {
 
     @GetMapping
     String storage(@AuthenticationPrincipal MyPrincipal user, Model model, @RequestParam Optional<String> path,
-                   @RequestParam Optional<String> sort, Optional<String> search) throws Exception {
+                   @RequestParam Optional<String> sort, @RequestParam Optional<String> search) throws Exception {
         List<FileDTO> listDTO;
         if (search.isPresent() && !search.get().isEmpty()) {
             listDTO
@@ -45,7 +45,7 @@ public class FileStorage {
         );
         model.addAttribute("path", path.orElse(""));
         model.addAttribute("search", search.orElse(""));
-        model.addAttribute("backPath", pathNameUtils.getBackPath(path.orElse("/")));
+        model.addAttribute("backPath", pathNameUtils.getBackPath(path.orElse("")));
         return "storage";
     }
 

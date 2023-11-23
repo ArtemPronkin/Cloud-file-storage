@@ -11,25 +11,28 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {@Index(name = "loginIndex", columnList = "username,email")})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private long id;
-    @Column(unique = true)
     @NotBlank
     @Size(min = 3, max = 20)
+    @Column(name = "username", unique = true)
     private String username;
-    @Column(unique = true)
     @NotBlank
     @Email(message = "Not valid Email")
+    @Column(name = "email", unique = true)
     private String email;
     @NotBlank
+    @Column(name = "password", unique = true)
     private String password;
     @Enumerated(EnumType.STRING)
+    @Column(name = "role")
     private Role role;
 
     public User(String username, String email, String password) {

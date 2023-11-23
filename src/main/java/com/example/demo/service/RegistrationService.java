@@ -1,7 +1,7 @@
-package com.example.demo.Service;
+package com.example.demo.service;
 
-import com.example.demo.Exception.UserUniqueEmailException;
-import com.example.demo.Exception.UserUniqueUserNameException;
+import com.example.demo.exception.UserUniqueEmailException;
+import com.example.demo.exception.UserUniqueUserNameException;
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;

@@ -1,6 +1,6 @@
-package com.example.demo.Service;
+package com.example.demo.service;
 
-import com.example.demo.Exception.S3StorageException;
+import com.example.demo.exception.S3StorageException;
 import com.example.demo.model.FileDTO;
 import io.minio.*;
 import io.minio.messages.DeleteError;

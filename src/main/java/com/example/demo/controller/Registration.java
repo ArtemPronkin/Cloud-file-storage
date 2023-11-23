@@ -1,12 +1,12 @@
-package com.example.demo.Controller;
+package com.example.demo.controller;
 
 
-import com.example.demo.Exception.S3StorageException;
-import com.example.demo.Exception.UserUniqueEmailException;
-import com.example.demo.Exception.UserUniqueUserNameException;
-import com.example.demo.Service.RegistrationService;
-import com.example.demo.Service.S3StorageService;
+import com.example.demo.exception.S3StorageException;
+import com.example.demo.exception.UserUniqueEmailException;
+import com.example.demo.exception.UserUniqueUserNameException;
 import com.example.demo.model.User;
+import com.example.demo.service.RegistrationService;
+import com.example.demo.service.S3StorageService;
 import com.example.demo.util.UserValidator;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

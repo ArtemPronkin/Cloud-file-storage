@@ -1,4 +1,4 @@
-package com.example.demo.Service;
+package com.example.demo.service;
 
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,5 +23,5 @@ public class MyUserDetailsService implements UserDetailsService {
         return new MyPrincipal(optionalUser.get());
     }
 
-    
+
 }

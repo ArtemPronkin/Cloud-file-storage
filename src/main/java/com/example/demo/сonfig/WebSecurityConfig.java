@@ -1,4 +1,4 @@
-package com.example.demo.Config;
+package com.example.demo.сonfig;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

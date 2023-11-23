@@ -1,4 +1,4 @@
-package com.example.demo.Exception;
+package com.example.demo.exception;
 
 public class UserUniqueEmailException extends Exception {
     public UserUniqueEmailException(String message) {

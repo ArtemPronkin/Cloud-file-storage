@@ -1,7 +1,7 @@
 package com.example.demo;
 
-import com.example.demo.Exception.S3StorageException;
-import com.example.demo.Service.S3StorageService;
+import com.example.demo.exception.S3StorageException;
+import com.example.demo.service.S3StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

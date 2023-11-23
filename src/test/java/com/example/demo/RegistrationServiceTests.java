@@ -1,10 +1,10 @@
 package com.example.demo;
 
-import com.example.demo.Exception.UserUniqueEmailException;
-import com.example.demo.Exception.UserUniqueUserNameException;
-import com.example.demo.Service.MyUserDetailsService;
-import com.example.demo.Service.RegistrationService;
+import com.example.demo.exception.UserUniqueEmailException;
+import com.example.demo.exception.UserUniqueUserNameException;
 import com.example.demo.model.User;
+import com.example.demo.service.MyUserDetailsService;
+import com.example.demo.service.RegistrationService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

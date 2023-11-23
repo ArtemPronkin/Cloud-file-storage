@@ -1,9 +1,9 @@
-package com.example.demo.Controller;
+package com.example.demo.controller;
 
-import com.example.demo.Exception.S3StorageException;
-import com.example.demo.Service.MyPrincipal;
-import com.example.demo.Service.S3StorageService;
+import com.example.demo.exception.S3StorageException;
 import com.example.demo.model.FileDTO;
+import com.example.demo.service.MyPrincipal;
+import com.example.demo.service.S3StorageService;
 import com.example.demo.util.PathNameUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

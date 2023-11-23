@@ -1,6 +1,6 @@
-package com.example.demo.Controller;
+package com.example.demo.controller;
 
-import com.example.demo.Exception.S3StorageException;
+import com.example.demo.exception.S3StorageException;
 import com.example.demo.util.PathNameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;

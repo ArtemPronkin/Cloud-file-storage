@@ -19,10 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -234,17 +231,21 @@ public class S3StorageService {
     }
 
     public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException {
+        Set<String> set = new HashSet<>();
         try {
             for (MultipartFile file :
                     multipartFiles) {
 
                 String fullPathName = file.getOriginalFilename();
                 log.info("PutFIle:  NameFile : " + fullPathName);
-                createFoldersForPath(bucketName, path + fullPathName);
+                set.add(path + fullPathName.substring(0, fullPathName.lastIndexOf('/') + 1));
                 putObject(bucketName,
                         path + file.getOriginalFilename(),
                         file.getContentType(),
                         file.getInputStream());
+            }
+            for (String uniquePath : set) {
+                createFoldersForPath(bucketName, uniquePath);
             }
         } catch (Exception e) {
             throw new S3StorageServerException(e.getMessage());

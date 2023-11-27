@@ -120,12 +120,6 @@ public class FileStorage {
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
-    @PostMapping("/search")
-    String postSearch(@AuthenticationPrincipal MyPrincipal user, @RequestParam Optional<String> search,
-                      @RequestParam Optional<String> path, Model model) {
-        return "redirect:/storage?search=" + pathNameUtils.encode(search.orElse(""));
-    }
-
     private List<FileDTO> sort(List<FileDTO> listDTO, Optional<String> sort) {
         if (sort.isEmpty() || sort.get().equals("name")) {
             listDTO

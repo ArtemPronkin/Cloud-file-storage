@@ -58,18 +58,23 @@ public class SessionTest {
         JedisPool jedisPool = new JedisPool(redisContainer.getHost(),
                 redisContainer.getMappedPort(6379));
         Jedis jedis = jedisPool.getResource();
-        User user = new User("name", "email@email", "password");
-        userRepository.save(user);
-        mockMvc
-                .perform(formLogin("/login")
-                        .user("username", "name")
-                        .password("password", "password"));
-        Assertions.assertTrue(jedis.keys("*")
-                .toArray()[0]
-                .toString()
-                .contains("spring:session:sessions"));
-        jedis.close();
-        jedisPool.close();
+        try {
+
+            User user = new User("name", "email@email", "password");
+            userRepository.save(user);
+            mockMvc
+                    .perform(formLogin("/login")
+                            .user("username", "name")
+                            .password("password", "password"));
+            Assertions.assertTrue(jedis.keys("*")
+                    .toArray()[0]
+                    .toString()
+                    .contains("spring:session:sessions"));
+        } finally {
+            jedis.close();
+            jedisPool.close();
+        }
+
 
     }
 

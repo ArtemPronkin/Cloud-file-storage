@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
-import com.example.demo.exception.S3StorageException;
+import com.example.demo.exception.S3StorageFileNotFoundException;
+import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.model.FileDTO;
 import com.example.demo.service.MyPrincipal;
 import com.example.demo.service.S3StorageService;
@@ -50,7 +51,7 @@ public class FileStorage {
     }
 
     @GetMapping(value = "/download")
-    void getFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, HttpServletResponse response) throws S3StorageException {
+    void getFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, HttpServletResponse response) throws S3StorageServerException {
 
         var file = s3StorageService.getObject(s3StorageService.generateStorageName(user.getId()), fileName);
         var downloadName = pathNameUtils.encode(fileName.substring(fileName.lastIndexOf("/") + 1));
@@ -64,34 +65,34 @@ public class FileStorage {
     }
 
     @PostMapping("/putFile")
-    String putFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) throws S3StorageException {
+    String putFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) throws S3StorageServerException {
         log.info("put on " + path.orElse("/"));
         s3StorageService.putArrayObjects(s3StorageService.generateStorageName(user.getId()), files, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @PostMapping("/putFolder")
-    String putFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) throws S3StorageException {
+    String putFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) throws S3StorageServerException {
         log.info("put on " + path.orElse("/"));
         s3StorageService.putFolder(s3StorageService.generateStorageName(user.getId()), files, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @DeleteMapping(value = "/delete")
-    String deleteFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, @RequestParam Optional<String> path) throws S3StorageException {
+    String deleteFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, @RequestParam Optional<String> path) throws S3StorageServerException {
         s3StorageService.deleteObject(s3StorageService.generateStorageName(user.getId()), fileName);
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @DeleteMapping(value = "/deleteFolder")
     String deleteAllFileInFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("folderName") String folderName,
-                                 @RequestParam Optional<String> path) throws S3StorageException {
+                                 @RequestParam Optional<String> path) throws S3StorageServerException {
         s3StorageService.deleteFolder(s3StorageService.generateStorageName(user.getId()), folderName, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @PostMapping("/createFolder")
-    String createFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("folderName") Optional<String> folderName, @RequestParam Optional<String> path) throws S3StorageException {
+    String createFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("folderName") Optional<String> folderName, @RequestParam Optional<String> path) throws S3StorageServerException {
         if (folderName.isPresent() && !folderName.get().isBlank()) {
             s3StorageService.createFoldersForPath(s3StorageService.generateStorageName(user.getId()), path.orElse("") + folderName.orElse("") + "/");
         }
@@ -100,14 +101,14 @@ public class FileStorage {
 
     @PatchMapping("/transferFile")
     String transferFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName,
-                        @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) throws S3StorageException {
+                        @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) throws S3StorageServerException, S3StorageFileNotFoundException {
         s3StorageService.transferObject(s3StorageService.generateStorageName(user.getId()), fileName, folderName.orElse("") + "/");
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @PatchMapping("/renameFile")
     String renameFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, @RequestParam String fileNameNew,
-                      @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) throws S3StorageException {
+                      @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageFileNotFoundException {
         s3StorageService.renameObject(s3StorageService.generateStorageName(user.getId()),
                 fileName, path.orElse("") + fileNameNew);
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
@@ -115,7 +116,7 @@ public class FileStorage {
 
     @PatchMapping("/renameFolder")
     String renameFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam String folderName, @RequestParam String folderNameNew,
-                        @RequestParam Optional<String> path) throws S3StorageException {
+                        @RequestParam Optional<String> path) throws S3StorageServerException {
         s3StorageService.renameFolder(s3StorageService.generateStorageName(user.getId()), folderName, folderNameNew, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }

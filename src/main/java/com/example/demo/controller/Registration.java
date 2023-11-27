@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 
-import com.example.demo.exception.S3StorageException;
+import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.exception.UserUniqueEmailException;
 import com.example.demo.exception.UserUniqueUserNameException;
 import com.example.demo.model.User;
@@ -35,7 +35,7 @@ public class Registration {
     @PostMapping("/registration")
     String createNewProfile(@ModelAttribute("user") @Valid User user,
                             BindingResult bindingResult,
-                            Model model) throws S3StorageException {
+                            Model model) throws S3StorageServerException {
         if (bindingResult.hasErrors()) {
             return "registration";
         }

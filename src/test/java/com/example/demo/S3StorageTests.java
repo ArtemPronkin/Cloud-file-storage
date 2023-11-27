@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.exception.S3StorageException;
+import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.service.S3StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,13 +45,13 @@ public class S3StorageTests {
     }
 
     @BeforeEach
-    void beforeEach() throws S3StorageException {
+    void beforeEach() throws S3StorageServerException {
         bucketName = UUID.randomUUID().toString();
         s3StorageService.makeBucket(bucketName);
     }
 
     @Test
-    void storageSearchTest() throws S3StorageException {
+    void storageSearchTest() throws S3StorageServerException {
         s3StorageService.createFolder(bucketName, "folder");
         assertEquals(1, s3StorageService.searchFileDTO(bucketName, "folder").size());
 
@@ -66,7 +66,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void storageDeleteFolderTest() throws S3StorageException {
+    void storageDeleteFolderTest() throws S3StorageServerException {
         s3StorageService.createFolder(bucketName, "test");
         s3StorageService.createFolder(bucketName, "test/2");
         s3StorageService.createFolder(bucketName, "test/2/3");
@@ -87,7 +87,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void storageRenameFolderTest() throws S3StorageException {
+    void storageRenameFolderTest() throws S3StorageServerException {
         s3StorageService.createFolder(bucketName, "test");
         s3StorageService.createFolder(bucketName, "test/2");
         s3StorageService.createFolder(bucketName, "test/2/3");
@@ -101,13 +101,13 @@ public class S3StorageTests {
     }
 
     @Test
-    void storageCreateFoldersForPathTest() throws S3StorageException {
+    void storageCreateFoldersForPathTest() throws S3StorageServerException {
         s3StorageService.createFoldersForPath(bucketName, "test/2/3/4/5/6/7/");
         assertEquals("test/2/3/4/5/", s3StorageService.searchFileDTO(bucketName, "5").get(0).getObjectName());
     }
 
     @Test
-    void storagePutObjectTest() throws S3StorageException, IOException {
+    void storagePutObjectTest() throws S3StorageServerException, IOException {
         var name = "hello.txt";
         var file = getMultiPartFile(name);
 
@@ -126,7 +126,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void storagePutFolderTest() throws S3StorageException, IOException {
+    void storagePutFolderTest() throws S3StorageServerException, IOException {
         var file1 = getMultiPartFile("folder1/folder2/folder3/folder4/hello.txt");
         var file2 = getMultiPartFile("folder1/folder2/folder3/folder4/hello2.txt");
         var file3 = getMultiPartFile("folder1/folder2/folder3/folder4/hello3.txt");

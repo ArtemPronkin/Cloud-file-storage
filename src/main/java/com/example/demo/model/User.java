@@ -5,14 +5,17 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 @Entity
-@Table(name = "users", indexes = {@Index(name = "loginIndex", columnList = "username,email")})
-@Data
+@Table(name = "users", indexes = {@Index(name = "security.users.index_search_user", columnList = "username,email")})
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class User implements Serializable {
@@ -39,5 +42,29 @@ public class User implements Serializable {
         this.username = username;
         this.email = email;
         this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", role=" + role +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        User user = (User) object;
+        return Objects.equals(username, user.username) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && role == user.role;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username, email, password, role);
     }
 }

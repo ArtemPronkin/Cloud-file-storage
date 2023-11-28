@@ -1,6 +1,5 @@
 package com.example.demo;
 
-import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import com.redis.testcontainers.RedisContainer;
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -59,13 +60,15 @@ public class SessionTest {
                 redisContainer.getMappedPort(6379));
         Jedis jedis = jedisPool.getResource();
         try {
+            mockMvc.perform(MockMvcRequestBuilders.post("/regitration")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .param("username", "name")
+                    .param("email", "email")
+                    .param("password", "password"));
 
-            User user = new User("name", "email@email", "password");
-            userRepository.save(user);
-            mockMvc
-                    .perform(formLogin("/login")
-                            .user("username", "name")
-                            .password("password", "password"));
+            mockMvc.perform(formLogin("/login")
+                    .user("username", "name")
+                    .password("password", "password"));
             Assertions.assertTrue(jedis.keys("*")
                     .toArray()[0]
                     .toString()

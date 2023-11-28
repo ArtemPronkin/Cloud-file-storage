@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.transaction.TransactionSystemException;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -54,6 +53,6 @@ public class RegistrationServiceTests {
         String email = "notEmail";
         String password = "pass";
         var user = new User(name, email, password);
-        Assertions.assertThrows(TransactionSystemException.class, () -> registration.registration(user));
+        Assertions.assertThrows(jakarta.validation.ConstraintViolationException.class, () -> registration.registration(user));
     }
 }

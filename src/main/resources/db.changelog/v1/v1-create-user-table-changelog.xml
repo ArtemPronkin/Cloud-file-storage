@@ -1,0 +1,64 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+    <changeSet id="v1-1" author="PronkinArtem">
+        <preConditions>
+            <not>
+                <tableExists tableName="users"/>
+            </not>
+        </preConditions>
+        <createTable tableName="users">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="email" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="password" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="role" type="ENUM('ROLE_ADMIN','ROLE_USER')">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="v1-2" author="PronkinArtem">
+        <preConditions>
+            <not>
+                <indexExists indexName="index_search_user"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="index_search_user" tableName="users">
+            <column name="username"/>
+            <column name="email"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="v1-3" author="PronkinArtem">
+        <preConditions>
+            <not>
+                <indexExists indexName="const_email_unique"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint
+                columnNames="email"
+                constraintName="const_email_unique"
+                tableName="users"
+        />
+    </changeSet>
+    <changeSet id="v1-4" author="PronkinArtem">
+        <preConditions>
+            <not>
+                <indexExists indexName="const_username_unique"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint
+                columnNames="username"
+                constraintName="const_username_unique"
+                tableName="users"
+        />
+    </changeSet>
+</databaseChangeLog>

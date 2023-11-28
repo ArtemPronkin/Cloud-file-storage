@@ -207,6 +207,7 @@ public class S3StorageService {
                 DeleteError error = result.get();
                 log.warn(
                         "Error in deleting object " + error.objectName() + "; " + error.message());
+                throw new S3StorageServerException("Error in deleting object " + error.objectName() + "; " + error.message());
             }
         } catch (
                 Exception e) {
@@ -231,25 +232,46 @@ public class S3StorageService {
     }
 
     public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException {
-        Set<String> set = new HashSet<>();
+        Set<String> setPath = new HashSet<>();
         try {
             for (MultipartFile file :
                     multipartFiles) {
 
                 String fullPathName = file.getOriginalFilename();
                 log.info("PutFIle:  NameFile : " + fullPathName);
-                set.add(path + fullPathName.substring(0, fullPathName.lastIndexOf('/') + 1));
+                setPath.add(path + fullPathName.substring(0, fullPathName.lastIndexOf('/') + 1));
                 putObject(bucketName,
                         path + file.getOriginalFilename(),
                         file.getContentType(),
                         file.getInputStream());
             }
-            for (String uniquePath : set) {
-                createFoldersForPath(bucketName, uniquePath);
+            var setFolderNames = giveSetFolderNamesFromSetPath(setPath);
+            for (String folderName : setFolderNames) {
+                createFolder(bucketName, folderName);
+                log.info("Create unique folder: " + folderName);
             }
         } catch (Exception e) {
             throw new S3StorageServerException(e.getMessage());
         }
+    }
+
+    private Set<String> giveSetFolderNamesFromSetPath(Set<String> setPath) {
+        Set<String> setFolderNames = new HashSet<>();
+        for (String uniquePath : setPath) {
+            var folderPath = "";
+            var folderPathArray = uniquePath.split("/");
+            log.info("UniquePath Array Lenth : " + folderPathArray.length);
+            var length = folderPathArray.length;
+            if (!uniquePath.endsWith("/")) {
+                length--;
+            }
+            for (int i = 0; i < length; i++) {
+                folderPath = folderPath + folderPathArray[i] + "/";
+                setFolderNames.add(folderPath);
+                log.info("UniquePath : " + folderPath);
+            }
+        }
+        return setFolderNames;
     }
 
     public void copyObject(String bucketName, String objectName, String objectNameSource) throws S3StorageServerException, S3StorageFileNotFoundException {
@@ -305,9 +327,7 @@ public class S3StorageService {
                 }
                 renameObject(bucketName, sourceName, nameNew);
                 log.info("renameFolder : " + sourceName + " to " + nameNew);
-
             }
-            folderNameNew = folderNameNewBuilder.toString();
         } catch (Exception e) {
             throw new S3StorageServerException(e.getMessage());
         }

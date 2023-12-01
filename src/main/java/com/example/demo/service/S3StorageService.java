@@ -318,10 +318,13 @@ public class S3StorageService {
             if (!folderNameNew.endsWith("/")) {
                 folderNameNew += "/";
             }
-            var findList = findAllObjectInFolder(bucketName, folderName, path);
+            var filesAndFolders = findAllObjectInFolder(bucketName, folderName, path);
             log.info("rename folder for " + folderName + " to " + folderNameNew + " path : " + path);
             StringBuilder folderNameNewBuilder = new StringBuilder(folderNameNew);
-            for (Result<Item> itemResult : findList) {
+            if (filesAndFolders.isEmpty()) {
+                throw new S3StorageFileNotFoundException("Rename Folder: Folder not found ");
+            }
+            for (Result<Item> itemResult : filesAndFolders) {
                 log.info(itemResult.get().objectName());
                 var sourceName = itemResult.get().objectName();
                 var nameNew = folderNameNewBuilder + sourceName.substring(folderName.length());
@@ -331,6 +334,7 @@ public class S3StorageService {
                 renameObject(bucketName, sourceName, nameNew);
                 log.info("renameFolder : " + sourceName + " to " + nameNew);
             }
+            createFoldersForPath(bucketName, folderNameNew);
         } catch (ErrorResponseException e) {
             throw new S3StorageFileNotFoundException("Rename Folder: File not found ");
         } catch (ServerException | InternalException | XmlParserException | InvalidResponseException |

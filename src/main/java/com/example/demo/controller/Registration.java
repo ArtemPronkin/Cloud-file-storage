@@ -7,7 +7,6 @@ import com.example.demo.exception.UserUniqueUserNameException;
 import com.example.demo.model.User;
 import com.example.demo.service.RegistrationService;
 import com.example.demo.service.S3StorageService;
-import com.example.demo.util.UserValidator;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -23,8 +22,6 @@ public class Registration {
     S3StorageService s3StorageService;
     @Autowired
     RegistrationService registration;
-    @Autowired
-    private UserValidator userValidator;
 
     @GetMapping("/registration")
     String showRegPage(@ModelAttribute("user") User user) {

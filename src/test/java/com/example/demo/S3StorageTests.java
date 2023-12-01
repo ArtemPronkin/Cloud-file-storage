@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.service.S3StorageService;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +88,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void storageRenameFolderTest() throws S3StorageServerException {
+    void storageRenameFolderTest() throws S3StorageServerException, S3StorageFileNotFoundException {
         s3StorageService.createFolder(bucketName, "test");
         s3StorageService.createFolder(bucketName, "test/2");
         s3StorageService.createFolder(bucketName, "test/2/3");

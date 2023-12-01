@@ -288,7 +288,7 @@ public class S3StorageService {
                             .build());
 
         } catch (ErrorResponseException e) {
-            throw new S3StorageFileNotFoundException("File not found");
+            throw new S3StorageFileNotFoundException("Copy Object :" + "File not found");
         } catch (ServerException | InternalException | XmlParserException | InvalidResponseException |
                  InvalidKeyException | NoSuchAlgorithmException | IOException | InsufficientDataException e) {
             throw new S3StorageServerException(e.getMessage());
@@ -312,9 +312,12 @@ public class S3StorageService {
         log.info(fileName + " rename to " + fileNameNew);
     }
 
-    @SneakyThrows
-    public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) {
+
+    public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) throws S3StorageServerException, S3StorageFileNotFoundException {
         try {
+            if (!folderNameNew.endsWith("/")) {
+                folderNameNew += "/";
+            }
             var findList = findAllObjectInFolder(bucketName, folderName, path);
             log.info("rename folder for " + folderName + " to " + folderNameNew + " path : " + path);
             StringBuilder folderNameNewBuilder = new StringBuilder(folderNameNew);
@@ -328,7 +331,10 @@ public class S3StorageService {
                 renameObject(bucketName, sourceName, nameNew);
                 log.info("renameFolder : " + sourceName + " to " + nameNew);
             }
-        } catch (Exception e) {
+        } catch (ErrorResponseException e) {
+            throw new S3StorageFileNotFoundException("Rename Folder: File not found ");
+        } catch (ServerException | InternalException | XmlParserException | InvalidResponseException |
+                 InvalidKeyException | NoSuchAlgorithmException | IOException | InsufficientDataException e) {
             throw new S3StorageServerException(e.getMessage());
         }
     }

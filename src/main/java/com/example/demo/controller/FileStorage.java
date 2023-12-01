@@ -116,7 +116,7 @@ public class FileStorage {
 
     @PatchMapping("/renameFolder")
     String renameFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam String folderName, @RequestParam String folderNameNew,
-                        @RequestParam Optional<String> path) throws S3StorageServerException {
+                        @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageFileNotFoundException {
         s3StorageService.renameFolder(s3StorageService.generateStorageName(user.getId()), folderName, folderNameNew, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }

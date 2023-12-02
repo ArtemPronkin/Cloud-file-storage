@@ -75,10 +75,7 @@ public class SessionTests {
                     .user("username", "name")
                     .password("password", "password"));
 
-            Assertions.assertTrue(jedis.keys("*")
-                    .toArray()[0]
-                    .toString()
-                    .contains("spring:session:sessions"));
+            Assertions.assertFalse(jedis.keys("spring:session:sessions*").isEmpty());
         }
 
 

@@ -3,6 +3,7 @@ package com.example.demo;
 import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.service.S3StorageService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,17 @@ public class S3StorageTests {
     }
 
     @Test
-    void storageSearchTest() throws S3StorageServerException {
+    void Must_MySQLContainerIsRun_WhenTestsStarted() {
+        Assertions.assertTrue(mySQLContainer.isRunning());
+    }
+
+    @Test
+    void Must_minIOContainerIsRun_WhenTestsStarted() {
+        Assertions.assertTrue(minIOContainer.isRunning());
+    }
+
+    @Test
+    void Must_NewFolderFound_WhenNewFolderIsCreated() throws S3StorageServerException {
         s3StorageService.createFolder(bucketName, "folder");
         assertEquals(1, s3StorageService.searchFileDTO(bucketName, "folder").size());
 
@@ -67,7 +78,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void storageDeleteFolderTest() throws S3StorageServerException {
+    void Must_ChildFolderRemoved_WhenParentFolderRemoved() throws S3StorageServerException {
         s3StorageService.createFolder(bucketName, "test");
         s3StorageService.createFolder(bucketName, "test/2");
         s3StorageService.createFolder(bucketName, "test/2/3");
@@ -88,7 +99,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void storageRenameFolderTest() throws S3StorageServerException, S3StorageFileNotFoundException {
+    void Must_ChildFolderRename_WhenParentFolderRename() throws S3StorageServerException, S3StorageFileNotFoundException {
         s3StorageService.createFolder(bucketName, "test");
         s3StorageService.createFolder(bucketName, "test/2");
         s3StorageService.createFolder(bucketName, "test/2/3");
@@ -102,13 +113,13 @@ public class S3StorageTests {
     }
 
     @Test
-    void storageCreateFoldersForPathTest() throws S3StorageServerException {
+    void Must_ParentsFolderIsCreated_WhenCreatedChildFolder() throws S3StorageServerException {
         s3StorageService.createFoldersForPath(bucketName, "test/2/3/4/5/6/7/");
         assertEquals("test/2/3/4/5/", s3StorageService.searchFileDTO(bucketName, "5").get(0).getObjectName());
     }
 
     @Test
-    void storagePutObjectTest() throws S3StorageServerException, IOException {
+    void Must_NewFileFound_WhenNewFileIsUploaded() throws S3StorageServerException, IOException {
         var name = "hello.txt";
         var file = getMultiPartFile(name);
 
@@ -127,12 +138,13 @@ public class S3StorageTests {
     }
 
     @Test
-    void storagePutFolderTest() throws S3StorageServerException, IOException {
+    void Must_FileAndSubFolderFound_WhenFolderWithFileUploaded() throws S3StorageServerException {
         var file1 = getMultiPartFile("folder1/folder2/folder3/folder4/hello.txt");
         var file2 = getMultiPartFile("folder1/folder2/folder3/folder4/hello2.txt");
         var file3 = getMultiPartFile("folder1/folder2/folder3/folder4/hello3.txt");
         var files = new MultipartFile[]{file1, file2, file3};
         var path = "path/";
+
         s3StorageService.putFolder(bucketName, files, path);
         assertEquals(path + file1.getOriginalFilename(),
                 s3StorageService.searchFileDTO(bucketName, "hello.txt").get(0).getObjectName());
@@ -148,6 +160,20 @@ public class S3StorageTests {
                 s3StorageService.searchFileDTO(bucketName, "folder2").get(0).getObjectName());
         assertEquals(path + "folder1/",
                 s3StorageService.searchFileDTO(bucketName, "folder1").get(0).getObjectName());
+
+        assertTrue(s3StorageService.findAllObjectInFolder(bucketName, "", "").size() > 0);
+        s3StorageService.deleteFolder(bucketName, "path/", "");
+        assertEquals(0, s3StorageService.findAllObjectInFolder(bucketName, "", "").size());
+    }
+
+    @Test
+    void Must_FilesAndFoldersNotFound_WhenParentFolderWithFileRemoved() throws S3StorageServerException {
+        var file1 = getMultiPartFile("folder1/folder2/folder3/folder4/hello.txt");
+        var file2 = getMultiPartFile("folder1/folder2/folder3/folder4/hello2.txt");
+        var file3 = getMultiPartFile("folder1/folder2/folder3/folder4/hello3.txt");
+        var files = new MultipartFile[]{file1, file2, file3};
+        var path = "path/";
+        s3StorageService.putFolder(bucketName, files, path);
 
         assertTrue(s3StorageService.findAllObjectInFolder(bucketName, "", "").size() > 0);
         s3StorageService.deleteFolder(bucketName, "path/", "");

@@ -3,8 +3,8 @@ package com.example.demo;
 import com.example.demo.exception.UserUniqueEmailException;
 import com.example.demo.exception.UserUniqueUserNameException;
 import com.example.demo.model.User;
-import com.example.demo.service.MyUserDetailsService;
 import com.example.demo.service.RegistrationService;
+import com.example.demo.service.security.MyUserDetailsService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,38 +21,50 @@ public class RegistrationServiceTests {
     @ServiceConnection
     static MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql");
     @Autowired
-    RegistrationService registration;
+    RegistrationService registrationService;
 
     @Autowired
     MyUserDetailsService myUserDetailsService;
 
     @Test
-    void registrationTest() throws UserUniqueUserNameException, UserUniqueEmailException {
+    void Must_MySQLContainerIsRun_WhenTestsStarted() {
+        Assertions.assertTrue(mySQLContainer.isRunning());
+    }
+
+    @Test
+    void Must_UserFound_WhenUserIsRegistered() throws UserUniqueUserNameException, UserUniqueEmailException {
         String name = "vasya";
-        registration.registration(new User(name, "vasya@vasya", "password"));
+
+        registrationService.registration(new User(name, "vasya@vasya", "password"));
+
         Assertions.assertEquals(name, myUserDetailsService.loadUserByUsername("vasya").getUsername());
     }
 
     @Test
-    void uniqueUsernameTest() throws UserUniqueUserNameException, UserUniqueEmailException {
+    void Must_ThrowException_WhenTryToRegisterNonUniqueNameOrEmail() throws UserUniqueUserNameException, UserUniqueEmailException {
         String name = "vasya2";
         String email = "vasya@vasya2";
         String password = "pass";
+
         var user = new User(name, email, password);
-        registration.registration(user);
+        registrationService.registration(user);
+
         Assertions.assertThrows(UserUniqueEmailException.class,
-                () -> registration.registration(new User(name + "test", email, password)));
+                () -> registrationService.registration(new User(name + "test", email, password)));
+
         Assertions.assertThrows(UserUniqueUserNameException.class,
-                () -> registration.registration(new User(name, email + "test", password)));
+                () -> registrationService.registration(new User(name, email + "test", password)));
 
     }
 
     @Test
-    void uniqueValidTest() throws UserUniqueUserNameException, UserUniqueEmailException {
+    void Must_ThrowException_WhenTryToRegisterWithNotCorrectEmail() {
         String name = "vasya3";
         String email = "notEmail";
         String password = "pass";
+
         var user = new User(name, email, password);
-        Assertions.assertThrows(jakarta.validation.ConstraintViolationException.class, () -> registration.registration(user));
+
+        Assertions.assertThrows(jakarta.validation.ConstraintViolationException.class, () -> registrationService.registration(user));
     }
 }

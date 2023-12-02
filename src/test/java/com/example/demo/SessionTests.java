@@ -27,7 +27,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
-public class SessionTest {
+public class SessionTests {
     @Container
     @ServiceConnection
     static MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql");
@@ -50,16 +50,21 @@ public class SessionTest {
     }
 
     @Test
-    void containerIsRunningTest() {
+    void Must_RedisContainerIsRun_WhenTestsStarted() {
         Assertions.assertTrue(redisContainer.isRunning());
     }
 
     @Test
-    void redisTest() throws Exception {
+    void Must_MySQLContainerIsRun_WhenTestsStarted() {
+        Assertions.assertTrue(mySQLContainer.isRunning());
+    }
+
+    @Test
+    void Must_RedisContainsSpringSession_WhenUserIsAuthenticated() throws Exception {
         JedisPool jedisPool = new JedisPool(redisContainer.getHost(),
                 redisContainer.getMappedPort(6379));
-        Jedis jedis = jedisPool.getResource();
-        try {
+        try (jedisPool; Jedis jedis = jedisPool.getResource()) {
+
             mockMvc.perform(MockMvcRequestBuilders.post("/regitration")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .param("username", "name")
@@ -69,13 +74,11 @@ public class SessionTest {
             mockMvc.perform(formLogin("/login")
                     .user("username", "name")
                     .password("password", "password"));
+
             Assertions.assertTrue(jedis.keys("*")
                     .toArray()[0]
                     .toString()
                     .contains("spring:session:sessions"));
-        } finally {
-            jedis.close();
-            jedisPool.close();
         }
 
 

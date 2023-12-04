@@ -6,7 +6,7 @@
 <div class="container">
     <div class="row justify-content-md-center">
         <div class="col col-lg-10">
-            <div th:with="error=${'ОШИБКА 404 Файл или папка не найдены или раннее были изменены'}">
+            <div th:with="error=${'ОШИБКА 409 Запрашиваемый ресурс заблокирован другим потоком'}">
                 <div th:replace="~{fragments/navbar}"></div>
                 <div th:replace="~{fragments/error}"></div>
             </div>

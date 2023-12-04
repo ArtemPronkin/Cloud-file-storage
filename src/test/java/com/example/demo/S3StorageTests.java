@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.exception.S3StorageFileNotFoundException;
+import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.service.S3StorageService;
 import org.junit.jupiter.api.Assertions;
@@ -78,7 +79,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void Must_ChildFolderRemoved_WhenParentFolderRemoved() throws S3StorageServerException {
+    void Must_ChildFolderRemoved_WhenParentFolderRemoved() throws S3StorageServerException, S3StorageResourseIsOccupiedException {
         s3StorageService.createFolder(bucketName, "test");
         s3StorageService.createFolder(bucketName, "test/2");
         s3StorageService.createFolder(bucketName, "test/2/3");
@@ -99,7 +100,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void Must_ChildFolderRename_WhenParentFolderRename() throws S3StorageServerException, S3StorageFileNotFoundException {
+    void Must_ChildFolderRename_WhenParentFolderRename() throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
         s3StorageService.createFolder(bucketName, "test");
         s3StorageService.createFolder(bucketName, "test/2");
         s3StorageService.createFolder(bucketName, "test/2/3");
@@ -138,7 +139,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void Must_FileAndSubFolderFound_WhenFolderWithFileUploaded() throws S3StorageServerException {
+    void Must_FileAndSubFolderFound_WhenFolderWithFileUploaded() throws S3StorageServerException, S3StorageResourseIsOccupiedException {
         var file1 = getMultiPartFile("folder1/folder2/folder3/folder4/hello.txt");
         var file2 = getMultiPartFile("folder1/folder2/folder3/folder4/hello2.txt");
         var file3 = getMultiPartFile("folder1/folder2/folder3/folder4/hello3.txt");
@@ -167,7 +168,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void Must_FilesAndFoldersNotFound_WhenParentFolderWithFileRemoved() throws S3StorageServerException {
+    void Must_FilesAndFoldersNotFound_WhenParentFolderWithFileRemoved() throws S3StorageServerException, S3StorageResourseIsOccupiedException {
         var file1 = getMultiPartFile("folder1/folder2/folder3/folder4/hello.txt");
         var file2 = getMultiPartFile("folder1/folder2/folder3/folder4/hello2.txt");
         var file3 = getMultiPartFile("folder1/folder2/folder3/folder4/hello3.txt");

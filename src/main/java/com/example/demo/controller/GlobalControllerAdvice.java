@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.exception.S3StorageFileNotFoundException;
+import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.util.PathNameUtils;
 import jakarta.servlet.ServletResponse;
@@ -18,14 +19,20 @@ public class GlobalControllerAdvice {
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(S3StorageServerException.class)
-    public String s3StorageException(S3StorageServerException e, Model model) {
+    public String S3StorageServerException(S3StorageServerException e, Model model) {
         return "error500";
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(S3StorageFileNotFoundException.class)
-    public String s3StorageException(Model model, ServletResponse response) {
+    public String S3StorageFileNotFoundException(Model model, ServletResponse response) {
         return "error404";
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(S3StorageResourseIsOccupiedException.class)
+    public String S3StorageResourseIsOccupiedException(Model model, ServletResponse response) {
+        return "error409";
     }
 }
 

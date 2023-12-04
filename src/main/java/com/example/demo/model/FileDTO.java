@@ -24,17 +24,20 @@ public class FileDTO {
         var item = result.get();
         this.isDir = item.isDir();
         this.objectName = item.objectName();
+
         if (isDir) {
-            this.objectNameWeb = objectName.substring(0, objectName.lastIndexOf('/'));
-            this.objectNameWeb = objectNameWeb.substring(objectNameWeb.lastIndexOf('/') + 1);
+            objectNameWeb = objectName.substring(0, objectName.lastIndexOf('/'));
+            objectNameWeb = objectNameWeb.substring(objectNameWeb.lastIndexOf('/') + 1);
         } else this.objectNameWeb = item.objectName().substring(item.objectName().lastIndexOf("/") + 1);
         this.size = item.size();
+
         if (!isDir) {
-            this.lastModified = item.lastModified().format(DateTimeFormatter.ofPattern("dd.MM.yy HH:mm"));
+            lastModified = item.lastModified().format(DateTimeFormatter.ofPattern("dd.MM.yy HH:mm"));
         } else lastModified = "";
         if (isDir) {
             type = "";
         } else type = objectNameWeb.substring(objectNameWeb.lastIndexOf('.') + 1);
+
         if (!isDir && objectName.endsWith("/")) {
             isHidden = true;
         }

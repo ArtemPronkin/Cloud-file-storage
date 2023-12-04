@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.exception.S3StorageFileNotFoundException;
+import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.model.FileDTO;
 import io.minio.*;
@@ -8,7 +9,6 @@ import io.minio.errors.*;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,28 +20,33 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
 public class S3StorageService {
+    static ConcurrentHashMap<String, Boolean> bucketInfoMap = new ConcurrentHashMap<>();
     @Autowired
     MinioClient minioClient;
 
-    public String generateStorageName(long id) {
-        return "user-" + id + "-files";
+    private static boolean bucketIsOccupied(String bucketName) {
+        if (!bucketInfoMap.containsKey(bucketName)) {
+            bucketInfoMap.putIfAbsent(bucketName, false);
+            return false;
+        }
+        return bucketInfoMap.get(bucketName);
     }
 
-    @SneakyThrows
-    public Iterable<Result<Item>> listAllFile(String bucketName, String fileName) {
-        return minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(bucketName)
-                        .startAfter(fileName)
-                        .prefix("")
-                        .recursive(true)
-                        .maxKeys(100)
-                        .build());
+    private static void takeBucket(String bucketName) {
+        bucketInfoMap.put(bucketName, true);
+    }
 
+    private static void emptyBucket(String bucketName) {
+        bucketInfoMap.put(bucketName, false);
+    }
+
+    public String generateStorageName(long id) {
+        return "user-" + id + "-files";
     }
 
     public ArrayList<FileDTO> searchFileDTO(String bucketName, String fileName) throws S3StorageServerException {
@@ -83,22 +88,23 @@ public class S3StorageService {
     }
 
 
-    public void makeBucket(String name) throws S3StorageServerException {
+    public void makeBucket(String bucketName) throws S3StorageServerException {
         boolean found =
                 false;
+        emptyBucket(bucketName);
         try {
             found = minioClient.bucketExists(BucketExistsArgs
                     .builder()
-                    .bucket(name)
+                    .bucket(bucketName)
                     .build());
 
             if (!found) {
                 minioClient.makeBucket(MakeBucketArgs
                         .builder()
-                        .bucket(name)
+                        .bucket(bucketName)
                         .build());
             } else {
-                log.info("Bucket " + name + " already exists.");
+                log.info("Bucket " + bucketName + " already exists.");
             }
         } catch (Exception e) {
             throw new S3StorageServerException(e.getMessage());
@@ -131,7 +137,10 @@ public class S3StorageService {
         }
     }
 
-    public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException {
+    public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+        if (bucketIsOccupied(bucketName)) {
+            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
+        } else takeBucket(bucketName);
         try {
             return minioClient.getObject(
                     GetObjectArgs.builder()
@@ -140,10 +149,26 @@ public class S3StorageService {
                             .build());
         } catch (Exception e) {
             throw new S3StorageServerException(e.getMessage());
+        } finally {
+            emptyBucket(bucketName);
         }
     }
 
-    public void deleteObject(String bucketName, String objectName) throws S3StorageServerException {
+    public void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+        if (bucketIsOccupied(bucketName)) {
+            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
+        } else takeBucket(bucketName);
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
+        } catch (Exception e) {
+            throw new S3StorageServerException(e.getMessage());
+        } finally {
+            emptyBucket(bucketName);
+        }
+    }
+
+    private void deleteObject(String bucketName, String objectName) throws S3StorageServerException {
         try {
             minioClient.removeObject(
                     RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
@@ -192,7 +217,10 @@ public class S3StorageService {
         }
     }
 
-    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException {
+    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+        if (bucketIsOccupied(bucketName)) {
+            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
+        } else takeBucket(bucketName);
         try {
             List<DeleteObject> objects = new LinkedList<>();
             var findList = findAllObjectInFolder(bucketName, folderName, path);
@@ -212,6 +240,8 @@ public class S3StorageService {
         } catch (
                 Exception e) {
             throw new S3StorageServerException(e.getMessage());
+        } finally {
+            emptyBucket(bucketName);
         }
 
     }
@@ -231,7 +261,10 @@ public class S3StorageService {
         }
     }
 
-    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException {
+    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+        if (bucketIsOccupied(bucketName)) {
+            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
+        } else takeBucket(bucketName);
         Set<String> setPath = new HashSet<>();
         try {
             for (MultipartFile file :
@@ -252,6 +285,8 @@ public class S3StorageService {
             }
         } catch (Exception e) {
             throw new S3StorageServerException(e.getMessage());
+        } finally {
+            emptyBucket(bucketName);
         }
     }
 
@@ -274,7 +309,7 @@ public class S3StorageService {
         return setFolderNames;
     }
 
-    public void copyObject(String bucketName, String objectName, String objectNameSource) throws S3StorageServerException, S3StorageFileNotFoundException {
+    private void copyObject(String bucketName, String objectName, String objectNameSource) throws S3StorageServerException, S3StorageFileNotFoundException {
         try {
             minioClient.copyObject(
                     CopyObjectArgs.builder()
@@ -295,15 +330,25 @@ public class S3StorageService {
         }
     }
 
-    public void transferObject(String bucketName, String objectNameSource, String folderName) throws S3StorageServerException, S3StorageFileNotFoundException {
-        createFolder(bucketName, folderName);
-        String nameFile = objectNameSource.substring(objectNameSource.lastIndexOf("/") + 1);
-        var fullNewPathName = folderName + nameFile;
-        createFoldersForPath(bucketName, fullNewPathName);
-        copyObject(bucketName, fullNewPathName, objectNameSource);
-        deleteObject(bucketName, objectNameSource);
+    public void transferObject(String bucketName, String objectNameSource, String folderName) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
+        if (bucketIsOccupied(bucketName)) {
+            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
+        } else takeBucket(bucketName);
+        try {
+            if (!folderName.endsWith("/")) {
+                folderName += '/';
+            }
+            createFolder(bucketName, folderName);
+            String nameFile = objectNameSource.substring(objectNameSource.lastIndexOf("/") + 1);
+            var fullNewPathName = folderName + nameFile;
+            createFoldersForPath(bucketName, fullNewPathName);
+            copyObject(bucketName, fullNewPathName, objectNameSource);
+            deleteObject(bucketName, objectNameSource);
 
-        log.info(objectNameSource + " transfer to " + folderName + nameFile);
+            log.info(objectNameSource + " transfer to " + folderName + nameFile);
+        } finally {
+            emptyBucket(bucketName);
+        }
     }
 
     public void renameObject(String bucketName, String fileName, String fileNameNew) throws S3StorageServerException, S3StorageFileNotFoundException {
@@ -313,7 +358,11 @@ public class S3StorageService {
     }
 
 
-    public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) throws S3StorageServerException, S3StorageFileNotFoundException {
+    public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
+        if (bucketIsOccupied(bucketName)) {
+            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
+        } else takeBucket(bucketName);
+
         try {
             if (!folderNameNew.endsWith("/")) {
                 folderNameNew += "/";
@@ -340,6 +389,8 @@ public class S3StorageService {
         } catch (ServerException | InternalException | XmlParserException | InvalidResponseException |
                  InvalidKeyException | NoSuchAlgorithmException | IOException | InsufficientDataException e) {
             throw new S3StorageServerException(e.getMessage());
+        } finally {
+            emptyBucket(bucketName);
         }
     }
 }

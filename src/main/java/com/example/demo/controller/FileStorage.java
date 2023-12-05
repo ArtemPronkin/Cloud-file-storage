@@ -4,7 +4,7 @@ import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.model.FileDTO;
-import com.example.demo.service.S3StorageService;
+import com.example.demo.service.S3StorageServiceSync;
 import com.example.demo.service.security.MyPrincipal;
 import com.example.demo.util.PathNameUtils;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/storage")
 public class FileStorage {
     @Autowired
-    S3StorageService s3StorageService;
+    S3StorageServiceSync s3StorageService;
     @Autowired
     PathNameUtils pathNameUtils;
 
@@ -109,7 +110,7 @@ public class FileStorage {
 
     @PatchMapping("/renameFile")
     String renameFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, @RequestParam String fileNameNew,
-                      @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageFileNotFoundException {
+                      @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
         s3StorageService.renameObject(s3StorageService.generateStorageName(user.getId()),
                 fileName, path.orElse("") + fileNameNew);
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
@@ -126,28 +127,28 @@ public class FileStorage {
         if (sort.isEmpty() || sort.get().equals("name")) {
             listDTO
                     = listDTO
-                    .stream().sorted((p1, p2) -> p1.getObjectName().toLowerCase()
-                            .compareTo(p2.getObjectName().toLowerCase()))
+                    .stream().sorted(Comparator.comparing(p -> p.getObjectName().toLowerCase()))
                     .collect(Collectors.toList());
         }
         if (sort.isPresent() && sort.get().equals("size")) {
             listDTO
                     = listDTO
-                    .stream().sorted((p1, p2) -> p1.getSize().compareTo(p2.getSize()))
+                    .stream().sorted(Comparator.comparing(FileDTO::getSize))
                     .collect(Collectors.toList());
         }
         if (sort.isPresent() && sort.get().equals("date")) {
             listDTO
                     = listDTO
-                    .stream().sorted((p1, p2) -> p1.getLastModified().compareTo(p2.getLastModified()))
+                    .stream().sorted(Comparator.comparing(FileDTO::getLastModified))
                     .collect(Collectors.toList());
         }
         if (sort.isPresent() && sort.get().equals("type")) {
             listDTO
                     = listDTO
-                    .stream().sorted((p1, p2) -> p1.getType().compareTo(p2.getType()))
+                    .stream().sorted(Comparator.comparing(FileDTO::getType))
                     .collect(Collectors.toList());
         }
+
         return listDTO;
     }
 

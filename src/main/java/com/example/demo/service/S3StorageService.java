@@ -4,228 +4,85 @@ import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.model.FileDTO;
-import io.minio.*;
+import com.example.demo.repository.MinioRepo;
+import io.minio.Result;
 import io.minio.errors.*;
-import io.minio.messages.DeleteError;
-import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
 public class S3StorageService implements S3StorageServiceInterface {
     @Autowired
-    MinioClient minioClient;
+    MinioRepo minioRepo;
+
 
     public String generateStorageName(long id) {
         return "user-" + id + "-files";
     }
 
     public ArrayList<FileDTO> searchFileDTO(String bucketName, String fileName) throws S3StorageServerException {
-        var allFiles = FileDTO.getFileDTOList(findAllObjectInFolder(bucketName, "", ""));
-        ArrayList<FileDTO> result = new ArrayList<>();
-        for (FileDTO fileDTO : allFiles) {
-            log.info(fileDTO.getObjectName());
-            if (fileDTO.getObjectNameWeb().contains(fileName)) {
-                result.add(fileDTO);
-            }
-        }
-        return result;
 
+        return minioRepo.searchFileDTO(bucketName, fileName);
     }
 
     public Iterable<Result<Item>> listPathObjects(String bucketName, String path) {
-        return minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(bucketName)
-                        .startAfter("")
-                        .prefix(path)
-                        .maxKeys(100)
-                        .build());
+        return minioRepo.listPathObjects(bucketName, path);
     }
 
     public List<FileDTO> listPathObjectsDTO(String bucketName, String path) {
-        return FileDTO.getFileDTOList(listPathObjects(bucketName, path));
+        return minioRepo.listPathObjectsDTO(bucketName, path);
     }
 
 
     public Iterable<Result<Item>> listObjectsInFolder(String name, String foldername, String path) {
-        return minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(name)
-                        .startAfter(path)
-                        .prefix(foldername)
-                        .maxKeys(100)
-                        .build());
+        return minioRepo.listObjectsInFolder(name, foldername, path);
     }
 
 
     public void makeBucket(String name) throws S3StorageServerException {
-        boolean found;
-        try {
-            found = minioClient.bucketExists(BucketExistsArgs
-                    .builder()
-                    .bucket(name)
-                    .build());
-
-            if (!found) {
-                minioClient.makeBucket(MakeBucketArgs
-                        .builder()
-                        .bucket(name)
-                        .build());
-            } else {
-                log.info("Bucket " + name + " already exists.");
-            }
-        } catch (Exception e) {
-            throw new S3StorageServerException(e.getMessage());
-        }
+        minioRepo.makeBucket(name);
     }
 
     public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException {
-        try {
-            for (MultipartFile file
-                    : multipartFiles) {
-                putObject(bucketName,
-                        path + file.getOriginalFilename(),
-                        file.getContentType(),
-                        file.getInputStream());
-            }
-        } catch (Exception e) {
-            throw new S3StorageServerException(e.getMessage());
-        }
+        minioRepo.putArrayObjects(bucketName, multipartFiles, path);
     }
 
     public void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageServerException {
-        try {
-            minioClient.putObject(
-                    PutObjectArgs.builder().bucket(bucketName).object(objectName).stream(
-                                    inputStream, -1, 10485760)
-                            .contentType(contentType)
-                            .build());
-        } catch (Exception e) {
-            throw new S3StorageServerException(e.getMessage());
-        }
+        minioRepo.putObject(bucketName, objectName, contentType, inputStream);
     }
 
     public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
-        try {
-            return minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .build());
-        } catch (Exception e) {
-            throw new S3StorageServerException(e.getMessage());
-        }
+        return minioRepo.getObject(bucketName, objectName);
     }
 
-    @Override
+
     public void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
-        try {
-            minioClient.removeObject(
-                    RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
-        } catch (Exception e) {
-
-            throw new S3StorageServerException(e.getMessage());
-        }
-    }
-
-    private void removeObjectAsync(String bucketName, String objectName) throws S3StorageServerException {
-        try {
-            minioClient.removeObject(
-                    RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
-        } catch (Exception e) {
-
-            throw new S3StorageServerException(e.getMessage());
-        }
+        minioRepo.removeObject(bucketName, objectName);
     }
 
     public void createFolder(String bucketName, String folderName) throws S3StorageServerException {
-        try {
-            minioClient.putObject(
-                    PutObjectArgs.builder().bucket(bucketName).object(folderName + "/").stream(
-                                    new ByteArrayInputStream(new byte[]{}), 0, -1)
-                            .build());
-        } catch (Exception e) {
-
-            throw new S3StorageServerException(e.getMessage());
-        }
+        minioRepo.createFolder(bucketName, folderName);
     }
 
     public List<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) throws S3StorageServerException {
-        log.info(" ALLObjectFind file name :" + folderName + "  path  " + path);
-
-        try {
-            List<Result<Item>> result = new ArrayList<>();
-            Iterable<Result<Item>> listFindObjects = listObjectsInFolder(bucketName, folderName, path);
-            Queue<Iterable<Result<Item>>> queue = new LinkedList<>();
-            queue.add(listFindObjects);
-
-            while (!queue.isEmpty()) {
-                listFindObjects = queue.poll();
-
-                for (Result<Item> cur :
-                        listFindObjects) {
-                    if (cur.get().isDir()) {
-                        var listNew = listObjectsInFolder(bucketName, cur.get().objectName(), cur.get().objectName());
-                        queue.add(listNew);
-                    }
-                    result.add(cur);
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            throw new S3StorageServerException(e.getMessage());
-        }
+        return minioRepo.findAllObjectInFolder(bucketName, folderName, path);
     }
 
     public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
-        try {
-            List<DeleteObject> objects = new LinkedList<>();
-            var findList = findAllObjectInFolder(bucketName, folderName, path);
-            for (Result<Item> itemResult : findList) {
-                log.info("DeleteAllObjectInFolder :" + itemResult.get().objectName());
-                objects.add(new DeleteObject(itemResult.get().objectName()));
-            }
-            Iterable<Result<DeleteError>> results =
-                    minioClient.removeObjects(
-                            RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
-            for (Result<DeleteError> result : results) {
-                DeleteError error = result.get();
-                log.warn(
-                        "Error in deleting object " + error.objectName() + "; " + error.message());
-                throw new S3StorageServerException("Error in deleting object " + error.objectName() + "; " + error.message());
-            }
-        } catch (
-                Exception e) {
-            throw new S3StorageServerException(e.getMessage());
-        }
-
-    }
-
-    public void createFoldersForPath(String bucketName, String fullPathName) throws S3StorageServerException {
-        var folderPath = "";
-        var folderPathArray = fullPathName.split("/");
-        log.info("createFoldersForPath Array Lenth : " + folderPathArray.length);
-        var length = folderPathArray.length;
-        if (!fullPathName.endsWith("/")) {
-            length--;
-        }
-        for (int i = 0; i < length; i++) {
-            folderPath = folderPath + folderPathArray[i] + "/";
-            createFolder(bucketName, folderPath);
-            log.info("createFoldersForPath create folder : " + folderPath);
-        }
+        minioRepo.deleteFolder(bucketName, folderName, path);
     }
 
     public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
@@ -238,14 +95,14 @@ public class S3StorageService implements S3StorageServiceInterface {
                 log.info("PutFIle:  NameFile : " + fullPathName);
                 assert fullPathName != null;
                 setPath.add(path + fullPathName.substring(0, fullPathName.lastIndexOf('/') + 1));
-                putObject(bucketName,
+                minioRepo.putObject(bucketName,
                         path + file.getOriginalFilename(),
                         file.getContentType(),
                         file.getInputStream());
             }
             var setFolderNames = giveSetFolderNamesFromSetPath(setPath);
             for (String folderName : setFolderNames) {
-                createFolder(bucketName, folderName);
+                minioRepo.createFolder(bucketName, folderName);
                 log.info("Create unique folder: " + folderName);
             }
         } catch (Exception e) {
@@ -272,47 +129,33 @@ public class S3StorageService implements S3StorageServiceInterface {
         return setFolderNames;
     }
 
-    public void copyObject(String bucketName, String objectName, String objectNameSource) throws S3StorageServerException, S3StorageFileNotFoundException {
-        try {
-            minioClient.copyObject(
-                    CopyObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .source(
-                                    CopySource.builder()
-                                            .bucket(bucketName)
-                                            .object(objectNameSource)
-                                            .build())
-                            .build());
-
-        } catch (ErrorResponseException e) {
-            throw new S3StorageFileNotFoundException("Copy Object :" + "File not found");
-        } catch (ServerException | InternalException | XmlParserException | InvalidResponseException |
-                 InvalidKeyException | NoSuchAlgorithmException | IOException | InsufficientDataException e) {
-            throw new S3StorageServerException(e.getMessage());
+    public void createFoldersForPath(String bucketName, String fullPathName) throws S3StorageServerException {
+        var folderPath = "";
+        var folderPathArray = fullPathName.split("/");
+        log.info("createFoldersForPath Array Lenth : " + folderPathArray.length);
+        var length = folderPathArray.length;
+        if (!fullPathName.endsWith("/")) {
+            length--;
+        }
+        for (int i = 0; i < length; i++) {
+            folderPath = folderPath + folderPathArray[i] + "/";
+            createFolder(bucketName, folderPath);
+            log.info("createFoldersForPath create folder : " + folderPath);
         }
     }
 
     public void transferObject(String bucketName, String objectNameSource, String folderName) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
-        createFolder(bucketName, folderName);
+        minioRepo.createFolder(bucketName, folderName);
         String nameFile = objectNameSource.substring(objectNameSource.lastIndexOf("/") + 1);
         var fullNewPathName = folderName + nameFile;
         createFoldersForPath(bucketName, fullNewPathName);
-        renameObjectAsync(bucketName, objectNameSource, fullNewPathName);
+        minioRepo.renameObject(bucketName, objectNameSource, fullNewPathName);
 
         log.info(objectNameSource + " transfer to " + folderName + nameFile);
     }
 
     public void renameObject(String bucketName, String fileName, String fileNameNew) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
-        copyObject(bucketName, fileNameNew, fileName);
-        removeObject(bucketName, fileName);
-        log.info(fileName + " rename to " + fileNameNew);
-    }
-
-    private void renameObjectAsync(String bucketName, String fileName, String fileNameNew) throws S3StorageServerException, S3StorageFileNotFoundException {
-        copyObject(bucketName, fileNameNew, fileName);
-        removeObjectAsync(bucketName, fileName);
-        log.info(fileName + " rename to " + fileNameNew);
+        minioRepo.renameObject(bucketName, fileName, fileNameNew);
     }
 
 
@@ -321,7 +164,7 @@ public class S3StorageService implements S3StorageServiceInterface {
             if (!folderNameNew.endsWith("/")) {
                 folderNameNew += "/";
             }
-            var filesAndFolders = findAllObjectInFolder(bucketName, folderName, path);
+            var filesAndFolders = minioRepo.findAllObjectInFolder(bucketName, folderName, path);
             log.info("rename folder for " + folderName + " to " + folderNameNew + " path : " + path);
             StringBuilder folderNameNewBuilder = new StringBuilder(folderNameNew);
             if (filesAndFolders.isEmpty()) {
@@ -335,7 +178,7 @@ public class S3StorageService implements S3StorageServiceInterface {
                 if (!folderNameNewBuilder.toString().endsWith("/")) {
                     folderNameNewBuilder.append('/');
                 }
-                renameObjectAsync(bucketName, sourceName, nameNew);
+                minioRepo.renameObject(bucketName, sourceName, nameNew);
                 log.info("renameFolder : " + sourceName + " to " + nameNew);
             }
         } catch (ErrorResponseException e) {

@@ -21,7 +21,7 @@ public interface S3StorageServiceInterface {
 
     List<FileDTO> listPathObjectsDTO(String bucketName, String path);
 
-    Iterable<Result<Item>> listObjectsInFolder(String name, String foldername, String path);
+    Iterable<Result<Item>> listObjectsInFolder(String name, String folderName, String path);
 
     void makeBucket(String bucketName) throws S3StorageServerException;
 

@@ -7,6 +7,7 @@ import com.example.demo.model.FileDTO;
 import com.example.demo.repository.MinioRepo;
 import io.minio.Result;
 import io.minio.errors.*;
+import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -28,14 +26,21 @@ public class S3StorageService implements S3StorageServiceInterface {
     @Autowired
     MinioRepo minioRepo;
 
-
     public String generateStorageName(long id) {
         return "user-" + id + "-files";
     }
 
     public ArrayList<FileDTO> searchFileDTO(String bucketName, String fileName) throws S3StorageServerException {
+        var allFiles = FileDTO.getFileDTOList(findAllObjectInFolder(bucketName, "", ""));
+        ArrayList<FileDTO> result = new ArrayList<>();
+        for (FileDTO fileDTO : allFiles) {
+            log.info(fileDTO.getObjectName());
+            if (fileDTO.getObjectNameWeb().contains(fileName)) {
+                result.add(fileDTO);
+            }
+        }
+        return result;
 
-        return minioRepo.searchFileDTO(bucketName, fileName);
     }
 
     public Iterable<Result<Item>> listPathObjects(String bucketName, String path) {
@@ -78,11 +83,46 @@ public class S3StorageService implements S3StorageServiceInterface {
     }
 
     public List<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) throws S3StorageServerException {
-        return minioRepo.findAllObjectInFolder(bucketName, folderName, path);
+        log.info(" ALLObjectFind file name :" + folderName + "  path  " + path);
+
+        try {
+            List<Result<Item>> result = new ArrayList<>();
+            Iterable<Result<Item>> listFindObjects = listObjectsInFolder(bucketName, folderName, path);
+            Queue<Iterable<Result<Item>>> queue = new LinkedList<>();
+            queue.add(listFindObjects);
+
+            while (!queue.isEmpty()) {
+                listFindObjects = queue.poll();
+
+                for (Result<Item> cur :
+                        listFindObjects) {
+                    if (cur.get().isDir()) {
+                        var listNew = listObjectsInFolder(bucketName, cur.get().objectName(), cur.get().objectName());
+                        queue.add(listNew);
+                    }
+                    result.add(cur);
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            throw new S3StorageServerException(e.getMessage());
+        }
     }
 
     public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
-        minioRepo.deleteFolder(bucketName, folderName, path);
+        try {
+            List<DeleteObject> objects = new LinkedList<>();
+            var findList = findAllObjectInFolder(bucketName, folderName, path);
+            for (Result<Item> itemResult : findList) {
+                log.info("DeleteAllObjectInFolder :" + itemResult.get().objectName());
+                objects.add(new DeleteObject(itemResult.get().objectName()));
+            }
+            minioRepo.removeListObjectc(bucketName, objects);
+        } catch (
+                Exception e) {
+            throw new S3StorageServerException(e.getMessage());
+        }
+
     }
 
     public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
@@ -164,7 +204,7 @@ public class S3StorageService implements S3StorageServiceInterface {
             if (!folderNameNew.endsWith("/")) {
                 folderNameNew += "/";
             }
-            var filesAndFolders = minioRepo.findAllObjectInFolder(bucketName, folderName, path);
+            var filesAndFolders = findAllObjectInFolder(bucketName, folderName, path);
             log.info("rename folder for " + folderName + " to " + folderNameNew + " path : " + path);
             StringBuilder folderNameNewBuilder = new StringBuilder(folderNameNew);
             if (filesAndFolders.isEmpty()) {

@@ -17,10 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 @Slf4j
 @Repository
@@ -28,21 +25,8 @@ public class MinioRepo {
 
     private final MinioClient minioClient;
 
-    public MinioRepo(MinioClient minioClient) {
+    private MinioRepo(MinioClient minioClient) {
         this.minioClient = minioClient;
-    }
-
-    public ArrayList<FileDTO> searchFileDTO(String bucketName, String fileName) throws S3StorageServerException {
-        var allFiles = FileDTO.getFileDTOList(findAllObjectInFolder(bucketName, "", ""));
-        ArrayList<FileDTO> result = new ArrayList<>();
-        for (FileDTO fileDTO : allFiles) {
-            log.info(fileDTO.getObjectName());
-            if (fileDTO.getObjectNameWeb().contains(fileName)) {
-                result.add(fileDTO);
-            }
-        }
-        return result;
-
     }
 
     public Iterable<Result<Item>> listPathObjects(String bucketName, String path) {
@@ -150,57 +134,6 @@ public class MinioRepo {
         }
     }
 
-    public List<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) throws S3StorageServerException {
-        log.info(" ALLObjectFind file name :" + folderName + "  path  " + path);
-
-        try {
-            List<Result<Item>> result = new ArrayList<>();
-            Iterable<Result<Item>> listFindObjects = listObjectsInFolder(bucketName, folderName, path);
-            Queue<Iterable<Result<Item>>> queue = new LinkedList<>();
-            queue.add(listFindObjects);
-
-            while (!queue.isEmpty()) {
-                listFindObjects = queue.poll();
-
-                for (Result<Item> cur :
-                        listFindObjects) {
-                    if (cur.get().isDir()) {
-                        var listNew = listObjectsInFolder(bucketName, cur.get().objectName(), cur.get().objectName());
-                        queue.add(listNew);
-                    }
-                    result.add(cur);
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            throw new S3StorageServerException(e.getMessage());
-        }
-    }
-
-    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException {
-        try {
-            List<DeleteObject> objects = new LinkedList<>();
-            var findList = findAllObjectInFolder(bucketName, folderName, path);
-            for (Result<Item> itemResult : findList) {
-                log.info("DeleteAllObjectInFolder :" + itemResult.get().objectName());
-                objects.add(new DeleteObject(itemResult.get().objectName()));
-            }
-            Iterable<Result<DeleteError>> results =
-                    minioClient.removeObjects(
-                            RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
-            for (Result<DeleteError> result : results) {
-                DeleteError error = result.get();
-                log.warn(
-                        "Error in deleting object " + error.objectName() + "; " + error.message());
-                throw new S3StorageServerException("Error in deleting object " + error.objectName() + "; " + error.message());
-            }
-        } catch (
-                Exception e) {
-            throw new S3StorageServerException(e.getMessage());
-        }
-
-    }
-
     public void copyObject(String bucketName, String objectName, String objectNameSource) throws S3StorageServerException, S3StorageFileNotFoundException {
         try {
             minioClient.copyObject(
@@ -226,5 +159,22 @@ public class MinioRepo {
         copyObject(bucketName, fileNameNew, fileName);
         removeObject(bucketName, fileName);
         log.info(fileName + " rename to " + fileNameNew);
+    }
+
+    public void removeListObjectc(String bucketName, List<DeleteObject> objects) throws S3StorageServerException {
+        Iterable<Result<DeleteError>> results =
+                minioClient.removeObjects(
+                        RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
+        for (Result<DeleteError> result : results) {
+            DeleteError error;
+            try {
+                error = result.get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            log.warn(
+                    "Error in deleting object " + error.objectName() + "; " + error.message());
+            throw new S3StorageServerException("Error in deleting object " + error.objectName() + "; " + error.message());
+        }
     }
 }

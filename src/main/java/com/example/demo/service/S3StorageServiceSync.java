@@ -57,8 +57,8 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public Iterable<Result<Item>> listObjectsInFolder(String name, String foldername, String path) {
-        return super.listObjectsInFolder(name, foldername, path);
+    public Iterable<Result<Item>> listObjectsInFolder(String name, String folderName, String path) {
+        return super.listObjectsInFolder(name, folderName, path);
     }
 
     @Override

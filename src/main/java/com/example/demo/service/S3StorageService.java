@@ -49,11 +49,6 @@ public class S3StorageService implements S3StorageServiceInterface {
     }
 
 
-    public Iterable<Result<Item>> listObjectsInFolder(String name, String foldername, String path) {
-        return minioRepo.listObjectsInFolder(name, foldername, path);
-    }
-
-
     public void makeBucket(String name) throws S3StorageServerException {
         minioRepo.makeBucket(name);
     }
@@ -87,7 +82,7 @@ public class S3StorageService implements S3StorageServiceInterface {
 
         try {
             List<Result<Item>> result = new ArrayList<>();
-            Iterable<Result<Item>> listFindObjects = listObjectsInFolder(bucketName, folderName, path);
+            Iterable<Result<Item>> listFindObjects = minioRepo.listObjectsInFolder(bucketName, folderName, path);
             Queue<Iterable<Result<Item>>> queue = new LinkedList<>();
             queue.add(listFindObjects);
 
@@ -97,7 +92,7 @@ public class S3StorageService implements S3StorageServiceInterface {
                 for (Result<Item> cur :
                         listFindObjects) {
                     if (cur.get().isDir()) {
-                        var listNew = listObjectsInFolder(bucketName, cur.get().objectName(), cur.get().objectName());
+                        var listNew = minioRepo.listObjectsInFolder(bucketName, cur.get().objectName(), cur.get().objectName());
                         queue.add(listNew);
                     }
                     result.add(cur);

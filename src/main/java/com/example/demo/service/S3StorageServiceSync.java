@@ -60,11 +60,6 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public Iterable<Result<Item>> listObjectsInFolder(String name, String folderName, String path) {
-        return super.listObjectsInFolder(name, folderName, path);
-    }
-
-    @Override
     public void makeBucket(String bucketName) throws S3StorageServerException {
         super.makeBucket(bucketName);
     }

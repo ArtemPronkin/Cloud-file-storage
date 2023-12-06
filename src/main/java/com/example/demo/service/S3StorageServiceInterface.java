@@ -20,8 +20,6 @@ public interface S3StorageServiceInterface {
 
     List<FileDTO> listPathObjectsDTO(String bucketName, String path);
 
-    Iterable<Result<Item>> listObjectsInFolder(String name, String folderName, String path);
-
     void makeBucket(String bucketName) throws S3StorageServerException;
 
     void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict;

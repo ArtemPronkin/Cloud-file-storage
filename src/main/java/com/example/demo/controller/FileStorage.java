@@ -67,7 +67,7 @@ public class FileStorage {
     }
 
     @PostMapping("/putFile")
-    String putFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) throws S3StorageServerException {
+    String putFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
         log.info("put on " + path.orElse("/"));
         s3StorageService.putArrayObjects(s3StorageService.generateStorageName(user.getId()), files, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));

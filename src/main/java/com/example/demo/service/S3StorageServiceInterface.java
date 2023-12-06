@@ -25,9 +25,9 @@ public interface S3StorageServiceInterface {
 
     void makeBucket(String bucketName) throws S3StorageServerException;
 
-    void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException;
+    void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException;
 
-    void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageServerException;
+    void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageServerException, S3StorageResourseIsOccupiedException;
 
     InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException;
 

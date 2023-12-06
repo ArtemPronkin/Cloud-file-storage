@@ -61,11 +61,11 @@ public class S3StorageService implements S3StorageServiceInterface {
         minioRepo.makeBucket(name);
     }
 
-    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException {
+    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
         minioRepo.putArrayObjects(bucketName, multipartFiles, path);
     }
 
-    public void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageServerException {
+    public void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
         minioRepo.putObject(bucketName, objectName, contentType, inputStream);
     }
 

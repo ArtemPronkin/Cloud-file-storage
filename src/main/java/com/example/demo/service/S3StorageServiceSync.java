@@ -36,6 +36,13 @@ public class S3StorageServiceSync extends S3StorageService {
         bucketInfoMap.put(bucketName, false);
     }
 
+    private static void occupiedBucket(String bucketName) throws S3StorageResourseIsOccupiedException {
+        if (bucketIsOccupied(bucketName)) {
+            log.info("S3StorageServiceSync : Resourse Is Occupied");
+            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
+        } else takeBucket(bucketName);
+    }
+
     @Override
     public String generateStorageName(long id) {
         return super.generateStorageName(id);
@@ -67,21 +74,28 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException {
-        super.putArrayObjects(bucketName, multipartFiles, path);
+    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+        occupiedBucket(bucketName);
+        try {
+            super.putArrayObjects(bucketName, multipartFiles, path);
+        } finally {
+            emptyBucket(bucketName);
+        }
     }
 
     @Override
-    public void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageServerException {
-        super.putObject(bucketName, objectName, contentType, inputStream);
+    public void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+        occupiedBucket(bucketName);
+        try {
+            super.putObject(bucketName, objectName, contentType, inputStream);
+        } finally {
+            emptyBucket(bucketName);
+        }
     }
 
     @Override
     public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
-        if (bucketIsOccupied(bucketName)) {
-            log.info("getObject Sync : Resourse Is Occupied");
-            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
-        } else takeBucket(bucketName);
+        occupiedBucket(bucketName);
         try {
             return super.getObject(bucketName, objectName);
         } finally {
@@ -91,10 +105,7 @@ public class S3StorageServiceSync extends S3StorageService {
 
     @Override
     public void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
-        if (bucketIsOccupied(bucketName)) {
-            log.info("removeObject Sync : Resourse Is Occupied");
-            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
-        } else takeBucket(bucketName);
+        occupiedBucket(bucketName);
         try {
             super.removeObject(bucketName, objectName);
         } finally {
@@ -115,10 +126,7 @@ public class S3StorageServiceSync extends S3StorageService {
 
     @Override
     public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
-        if (bucketIsOccupied(bucketName)) {
-            log.info("deleteFolder Sync : Resourse Is Occupied");
-            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
-        } else takeBucket(bucketName);
+        occupiedBucket(bucketName);
         try {
             super.deleteFolder(bucketName, folderName, path);
         } finally {
@@ -139,10 +147,7 @@ public class S3StorageServiceSync extends S3StorageService {
 
     @Override
     public void transferObject(String bucketName, String objectNameSource, String folderName) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
-        if (bucketIsOccupied(bucketName)) {
-            log.info("transferObject Sync : Resourse Is Occupied");
-            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
-        } else takeBucket(bucketName);
+        occupiedBucket(bucketName);
         try {
             super.transferObject(bucketName, objectNameSource, folderName);
         } finally {
@@ -152,10 +157,7 @@ public class S3StorageServiceSync extends S3StorageService {
 
     @Override
     public void renameObject(String bucketName, String fileName, String fileNameNew) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
-        if (bucketIsOccupied(bucketName)) {
-            log.info("renameObject Sync : Resourse Is Occupied");
-            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
-        } else takeBucket(bucketName);
+        occupiedBucket(bucketName);
         try {
             super.renameObject(bucketName, fileName, fileNameNew);
         } finally {
@@ -165,10 +167,7 @@ public class S3StorageServiceSync extends S3StorageService {
 
     @Override
     public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
-        if (bucketIsOccupied(bucketName)) {
-            log.info("renameFolder Sync : Resourse Is Occupied");
-            throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
-        } else takeBucket(bucketName);
+        occupiedBucket(bucketName);
         try {
             super.renameFolder(bucketName, folderName, folderNameNew, path);
         } finally {

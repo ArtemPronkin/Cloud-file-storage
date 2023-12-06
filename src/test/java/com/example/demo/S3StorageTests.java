@@ -120,7 +120,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void Must_NewFileFound_WhenNewFileIsUploaded() throws S3StorageServerException, IOException {
+    void Must_NewFileFound_WhenNewFileIsUploaded() throws S3StorageServerException, IOException, S3StorageResourseIsOccupiedException {
         var name = "hello.txt";
         var file = getMultiPartFile(name);
 

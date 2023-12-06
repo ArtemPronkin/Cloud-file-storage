@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.exception.S3StorageFileNameConcflict;
 import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
@@ -74,7 +75,7 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         occupiedBucket(bucketName);
         try {
             super.putArrayObjects(bucketName, multipartFiles, path);
@@ -141,12 +142,12 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         super.putFolder(bucketName, multipartFiles, path);
     }
 
     @Override
-    public void transferObject(String bucketName, String objectNameSource, String folderName) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
+    public void transferObject(String bucketName, String objectNameSource, String folderName) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         occupiedBucket(bucketName);
         try {
             super.transferObject(bucketName, objectNameSource, folderName);
@@ -156,7 +157,7 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public void renameObject(String bucketName, String fileName, String fileNameNew) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
+    public void renameObject(String bucketName, String fileName, String fileNameNew) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         occupiedBucket(bucketName);
         try {
             super.renameObject(bucketName, fileName, fileNameNew);
@@ -170,6 +171,8 @@ public class S3StorageServiceSync extends S3StorageService {
         occupiedBucket(bucketName);
         try {
             super.renameFolder(bucketName, folderName, folderNameNew, path);
+        } catch (S3StorageFileNameConcflict e) {
+            throw new RuntimeException(e);
         } finally {
             emptyBucket(bucketName);
         }

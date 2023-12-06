@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.exception.S3StorageFileNameConcflict;
 import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
@@ -61,7 +62,10 @@ public class S3StorageService implements S3StorageServiceInterface {
         minioRepo.makeBucket(name);
     }
 
-    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
+        for (MultipartFile multipartFile : multipartFiles) {
+            fileNameCheck(bucketName, path + multipartFile.getOriginalFilename());
+        }
         minioRepo.putArrayObjects(bucketName, multipartFiles, path);
     }
 
@@ -117,7 +121,7 @@ public class S3StorageService implements S3StorageServiceInterface {
                 log.info("DeleteAllObjectInFolder :" + itemResult.get().objectName());
                 objects.add(new DeleteObject(itemResult.get().objectName()));
             }
-            minioRepo.removeListObjectc(bucketName, objects);
+            minioRepo.removeListObjects(bucketName, objects);
         } catch (
                 Exception e) {
             throw new S3StorageServerException(e.getMessage());
@@ -125,8 +129,11 @@ public class S3StorageService implements S3StorageServiceInterface {
 
     }
 
-    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         Set<String> setPath = new HashSet<>();
+        for (MultipartFile multipartFile : multipartFiles) {
+            fileNameCheck(bucketName, multipartFile.getOriginalFilename());
+        }
         try {
             for (MultipartFile file :
                     multipartFiles) {
@@ -145,7 +152,7 @@ public class S3StorageService implements S3StorageServiceInterface {
                 minioRepo.createFolder(bucketName, folderName);
                 log.info("Create unique folder: " + folderName);
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new S3StorageServerException(e.getMessage());
         }
     }
@@ -184,35 +191,66 @@ public class S3StorageService implements S3StorageServiceInterface {
         }
     }
 
-    public void transferObject(String bucketName, String objectNameSource, String folderName) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
-        minioRepo.createFolder(bucketName, folderName);
+    public void transferObject(String bucketName, String objectNameSource, String folderName) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
+
         String nameFile = objectNameSource.substring(objectNameSource.lastIndexOf("/") + 1);
+        if (!folderName.endsWith("/")) {
+            folderName += '/';
+        }
         var fullNewPathName = folderName + nameFile;
+
+
+        fileNameCheck(bucketName, fullNewPathName);
+
+        minioRepo.createFolder(bucketName, folderName);
+
         createFoldersForPath(bucketName, fullNewPathName);
+
         minioRepo.renameObject(bucketName, objectNameSource, fullNewPathName);
 
         log.info(objectNameSource + " transfer to " + folderName + nameFile);
     }
 
-    public void renameObject(String bucketName, String fileName, String fileNameNew) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
+    private void fileNameCheck(String bucketName, String fullNewPathName) throws S3StorageFileNameConcflict {
+        var list = minioRepo.searchFile(bucketName, fullNewPathName);
+        for (Result<Item> itemResult : list) {
+            log.info("Conflict name found : " + fullNewPathName);
+            throw new S3StorageFileNameConcflict(fullNewPathName);
+        }
+    }
+
+    public void renameObject(String bucketName, String fileName, String fileNameNew) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
+        fileNameCheck(bucketName, fileNameNew);
         minioRepo.renameObject(bucketName, fileName, fileNameNew);
     }
 
 
-    public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
+    public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         try {
             if (!folderNameNew.endsWith("/")) {
                 folderNameNew += "/";
             }
             var filesAndFolders = findAllObjectInFolder(bucketName, folderName, path);
+
             log.info("rename folder for " + folderName + " to " + folderNameNew + " path : " + path);
+
             StringBuilder folderNameNewBuilder = new StringBuilder(folderNameNew);
             if (filesAndFolders.isEmpty()) {
                 throw new S3StorageFileNotFoundException("Rename Folder: Folder not found ");
             }
             createFoldersForPath(bucketName, folderNameNew);
+
             for (Result<Item> itemResult : filesAndFolders) {
-                log.info(itemResult.get().objectName());
+                log.info("search conflict name for : " + itemResult.get().objectName());
+                var sourceName = itemResult.get().objectName();
+                var nameNew = folderNameNewBuilder + sourceName.substring(folderName.length());
+                if (!nameNew.endsWith("/")) {
+                    fileNameCheck(bucketName, nameNew);
+                }
+            }
+
+            for (Result<Item> itemResult : filesAndFolders) {
+                log.info("rename : " + itemResult.get().objectName());
                 var sourceName = itemResult.get().objectName();
                 var nameNew = folderNameNewBuilder + sourceName.substring(folderName.length());
                 if (!folderNameNewBuilder.toString().endsWith("/")) {

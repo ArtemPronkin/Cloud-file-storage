@@ -1,10 +1,10 @@
 package com.example.demo.controller;
 
+import com.example.demo.exception.S3StorageFileNameConcflict;
 import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.util.PathNameUtils;
-import jakarta.servlet.ServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
@@ -19,19 +19,26 @@ public class GlobalControllerAdvice {
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(S3StorageServerException.class)
-    public String S3StorageServerException(S3StorageServerException e, Model model) {
+    public String S3StorageServerException() {
         return "error500";
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(S3StorageFileNotFoundException.class)
-    public String S3StorageFileNotFoundException(Model model, ServletResponse response) {
+    public String S3StorageFileNotFoundException() {
         return "error404";
     }
 
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
     @ExceptionHandler(S3StorageResourseIsOccupiedException.class)
-    public String S3StorageResourseIsOccupiedException(Model model, ServletResponse response) {
+    public String S3StorageResourseIsOccupiedException() {
+        return "error429";
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(S3StorageFileNameConcflict.class)
+    public String S3StorageFileNameConcflict(S3StorageFileNameConcflict ex, Model model) {
+        model.addAttribute("cause", ex.getMessage());
         return "error409";
     }
 }

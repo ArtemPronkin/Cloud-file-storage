@@ -51,6 +51,16 @@ public class MinioRepo {
                         .build());
     }
 
+    public Iterable<Result<Item>> searchFile(String bucketName, String name) {
+        return minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .startAfter("")
+                        .prefix(name)
+                        .maxKeys(100)
+                        .build());
+    }
+
     public void makeBucket(String name) throws S3StorageServerException {
         boolean found;
         try {
@@ -159,7 +169,7 @@ public class MinioRepo {
         log.info(fileName + " rename to " + fileNameNew);
     }
 
-    public void removeListObjectc(String bucketName, List<DeleteObject> objects) throws S3StorageServerException {
+    public void removeListObjects(String bucketName, List<DeleteObject> objects) throws S3StorageServerException {
         Iterable<Result<DeleteError>> results =
                 minioClient.removeObjects(
                         RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());

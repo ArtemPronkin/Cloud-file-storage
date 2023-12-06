@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.exception.S3StorageFileNameConcflict;
 import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
@@ -67,14 +68,14 @@ public class FileStorage {
     }
 
     @PostMapping("/putFile")
-    String putFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    String putFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         log.info("put on " + path.orElse("/"));
         s3StorageService.putArrayObjects(s3StorageService.generateStorageName(user.getId()), files, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @PostMapping("/putFolder")
-    String putFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    String putFolder(@AuthenticationPrincipal MyPrincipal user, @RequestParam("file") MultipartFile[] files, @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         log.info("put on " + path.orElse("/"));
         s3StorageService.putFolder(s3StorageService.generateStorageName(user.getId()), files, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
@@ -103,14 +104,14 @@ public class FileStorage {
 
     @PatchMapping("/transferFile")
     String transferFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName,
-                        @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
+                        @RequestParam Optional<String> path, @RequestParam Optional<String> folderName) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         s3StorageService.transferObject(s3StorageService.generateStorageName(user.getId()), fileName, folderName.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
 
     @PatchMapping("/renameFile")
     String renameFile(@AuthenticationPrincipal MyPrincipal user, @RequestParam String fileName, @RequestParam String fileNameNew,
-                      @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
+                      @RequestParam Optional<String> path) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         s3StorageService.renameObject(s3StorageService.generateStorageName(user.getId()),
                 fileName, path.orElse("") + fileNameNew);
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));

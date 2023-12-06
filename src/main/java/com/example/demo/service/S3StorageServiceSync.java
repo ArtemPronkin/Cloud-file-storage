@@ -55,11 +55,6 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public Iterable<Result<Item>> listPathObjects(String bucketName, String path) {
-        return super.listPathObjects(bucketName, path);
-    }
-
-    @Override
     public List<FileDTO> listPathObjectsDTO(String bucketName, String path) {
         return super.listPathObjectsDTO(bucketName, path);
     }
@@ -95,7 +90,7 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
         occupiedBucket(bucketName);
         try {
             return super.getObject(bucketName, objectName);

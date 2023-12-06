@@ -26,39 +26,26 @@ public class MinioRepo {
     @Autowired
     MinioClient minioClient;
 
-
-    public Iterable<Result<Item>> listPathObjects(String bucketName, String path) {
-        return minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(bucketName)
-                        .startAfter("")
-                        .prefix(path)
-                        .maxKeys(100)
-                        .build());
-    }
-
     public List<FileDTO> listPathObjectsDTO(String bucketName, String path) {
-        return FileDTO.getFileDTOList(listPathObjects(bucketName, path));
+        return FileDTO.getFileDTOList(findObjects(bucketName, path, ""));
     }
 
-    public Iterable<Result<Item>> listObjectsInFolder(String name, String foldername, String path) {
+    public Iterable<Result<Item>> findObjects(String name, String prefix, String startAfter) {
         return minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(name)
-                        .startAfter(path)
-                        .prefix(foldername)
+                        .startAfter(startAfter)
+                        .prefix(prefix)
                         .maxKeys(100)
                         .build());
     }
 
+    public Iterable<Result<Item>> listObjectsInFolder(String bucketName, String folderName, String path) {
+        return findObjects(bucketName, folderName, path);
+    }
+
     public Iterable<Result<Item>> searchFile(String bucketName, String name) {
-        return minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(bucketName)
-                        .startAfter("")
-                        .prefix(name)
-                        .maxKeys(100)
-                        .build());
+        return findObjects(bucketName, name, "");
     }
 
     public void makeBucket(String name) throws S3StorageServerException {
@@ -108,14 +95,18 @@ public class MinioRepo {
         }
     }
 
-    public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException {
+    public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageFileNotFoundException {
         try {
             return minioClient.getObject(
                     GetObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectName)
                             .build());
-        } catch (Exception e) {
+
+        } catch (ErrorResponseException e) {
+            throw new S3StorageFileNotFoundException("Get Object :" + objectName + "File not found");
+        } catch (ServerException | InternalException | XmlParserException | InvalidResponseException |
+                 InvalidKeyException | NoSuchAlgorithmException | IOException | InsufficientDataException e) {
             throw new S3StorageServerException(e.getMessage());
         }
     }

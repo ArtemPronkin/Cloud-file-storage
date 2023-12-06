@@ -44,10 +44,6 @@ public class S3StorageService implements S3StorageServiceInterface {
 
     }
 
-    public Iterable<Result<Item>> listPathObjects(String bucketName, String path) {
-        return minioRepo.listPathObjects(bucketName, path);
-    }
-
     public List<FileDTO> listPathObjectsDTO(String bucketName, String path) {
         return minioRepo.listPathObjectsDTO(bucketName, path);
     }
@@ -73,7 +69,7 @@ public class S3StorageService implements S3StorageServiceInterface {
         minioRepo.putObject(bucketName, objectName, contentType, inputStream);
     }
 
-    public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
         return minioRepo.getObject(bucketName, objectName);
     }
 

@@ -18,8 +18,6 @@ public interface S3StorageServiceInterface {
 
     ArrayList<FileDTO> searchFileDTO(String bucketName, String fileName) throws S3StorageServerException;
 
-    Iterable<Result<Item>> listPathObjects(String bucketName, String path);
-
     List<FileDTO> listPathObjectsDTO(String bucketName, String path);
 
     Iterable<Result<Item>> listObjectsInFolder(String name, String folderName, String path);
@@ -30,7 +28,7 @@ public interface S3StorageServiceInterface {
 
     void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageServerException, S3StorageResourseIsOccupiedException;
 
-    InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException;
+    InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException;
 
     void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException;
 

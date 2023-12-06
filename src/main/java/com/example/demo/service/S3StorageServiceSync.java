@@ -60,8 +60,8 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public void makeBucket(String bucketName) throws S3StorageServerException {
-        super.makeBucket(bucketName);
+    public void makeWorkDirectory(String bucketName) throws S3StorageServerException {
+        super.makeWorkDirectory(bucketName);
     }
 
     @Override

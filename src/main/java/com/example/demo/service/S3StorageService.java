@@ -49,7 +49,7 @@ public class S3StorageService implements S3StorageServiceInterface {
     }
 
 
-    public void makeBucket(String name) throws S3StorageServerException {
+    public void makeWorkDirectory(String name) throws S3StorageServerException {
         minioRepo.makeBucket(name);
     }
 

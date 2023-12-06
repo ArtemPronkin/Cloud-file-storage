@@ -44,7 +44,7 @@ public class Registration {
         if (bindingResult.hasErrors()) {
             return "registration";
         }
-        s3StorageService.makeBucket(s3StorageService.generateStorageName(user.getId()));
+        s3StorageService.makeWorkDirectory(s3StorageService.generateStorageName(user.getId()));
         return "redirect:/login";
     }
 }

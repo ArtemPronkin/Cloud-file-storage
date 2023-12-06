@@ -51,7 +51,7 @@ public class S3StorageTests {
     @BeforeEach
     void beforeEach() throws S3StorageServerException {
         bucketName = UUID.randomUUID().toString();
-        s3StorageService.makeBucket(bucketName);
+        s3StorageService.makeWorkDirectory(bucketName);
     }
 
     @Test

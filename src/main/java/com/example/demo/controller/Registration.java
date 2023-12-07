@@ -7,8 +7,10 @@ import com.example.demo.exception.UserUniqueUserNameException;
 import com.example.demo.model.User;
 import com.example.demo.service.RegistrationService;
 import com.example.demo.service.S3StorageService;
+import com.example.demo.service.S3StorageServiceInterface;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,10 +19,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 public class Registration {
-    @Autowired
-    S3StorageService s3StorageService;
-    @Autowired
+
+    S3StorageServiceInterface s3StorageService;
     RegistrationService registration;
+
+    public Registration(@Qualifier("workStorageService")  S3StorageServiceInterface s3StorageService, RegistrationService registration) {
+        this.s3StorageService = s3StorageService;
+        this.registration = registration;
+    }
 
     @GetMapping("/registration")
     String showRegPage(@ModelAttribute("user") User user) {

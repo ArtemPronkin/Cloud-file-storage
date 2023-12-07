@@ -5,10 +5,12 @@ import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.service.S3StorageService;
+import com.example.demo.service.S3StorageServiceInterface;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
@@ -40,7 +42,8 @@ public class S3StorageTests {
             .withCommand("server /data")
             .withExposedPorts(9000);
     @Autowired
-    S3StorageService s3StorageService;
+    @Qualifier("workStorageService")
+    S3StorageServiceInterface s3StorageService;
     String bucketName;
 
     @DynamicPropertySource

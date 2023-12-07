@@ -28,13 +28,13 @@ public interface S3StorageServiceInterface {
 
     InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException;
 
-    void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException;
+    void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException;
 
     void createFolder(String bucketName, String folderName) throws S3StorageServerException;
 
     List<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) throws S3StorageServerException;
 
-    void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException;
+    void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException;
 
     void createFoldersForPath(String bucketName, String fullPathName) throws S3StorageServerException;
 

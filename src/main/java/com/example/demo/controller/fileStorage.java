@@ -5,12 +5,13 @@ import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.model.FileDTO;
-import com.example.demo.service.S3StorageServiceSync;
+import com.example.demo.service.S3StorageServiceInterface;
 import com.example.demo.service.security.MyPrincipal;
 import com.example.demo.util.PathNameUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,11 +28,17 @@ import java.util.stream.Collectors;
 @Slf4j
 @Controller
 @RequestMapping(value = "/storage")
-public class FileStorage {
-    @Autowired
-    S3StorageServiceSync s3StorageService;
-    @Autowired
+public class fileStorage {
+
+    S3StorageServiceInterface s3StorageService;
     PathNameUtils pathNameUtils;
+
+    @Autowired
+    public fileStorage(@Qualifier("workStorageService") S3StorageServiceInterface s3StorageService,
+                       PathNameUtils pathNameUtils) {
+        this.s3StorageService = s3StorageService;
+        this.pathNameUtils = pathNameUtils;
+    }
 
     @GetMapping
     String storage(@AuthenticationPrincipal MyPrincipal user, Model model,
@@ -114,7 +121,7 @@ public class FileStorage {
                       @RequestParam Optional<String> path)
             throws
             S3StorageServerException,
-            S3StorageResourseIsOccupiedException {
+            S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
 
         s3StorageService.removeObject(s3StorageService.generateStorageName(user.getId()), fileName);
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
@@ -126,7 +133,7 @@ public class FileStorage {
                                  @RequestParam Optional<String> path)
             throws
             S3StorageServerException,
-            S3StorageResourseIsOccupiedException {
+            S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
 
         s3StorageService.deleteFolder
                 (s3StorageService.generateStorageName(user.getId()), folderName, path.orElse(""));
@@ -186,7 +193,7 @@ public class FileStorage {
             throws
             S3StorageServerException,
             S3StorageFileNotFoundException,
-            S3StorageResourseIsOccupiedException {
+            S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         s3StorageService.renameFolder
                 (s3StorageService.generateStorageName(user.getId()),
                         folderName, folderNameNew, path.orElse(""));

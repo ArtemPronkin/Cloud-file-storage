@@ -69,7 +69,10 @@ public class S3StorageService implements S3StorageServiceInterface {
     }
 
 
-    public void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    public void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
+        if (!minioRepo.searchFile(bucketName, objectName).iterator().hasNext()) {
+            throw new S3StorageFileNotFoundException("File not found");
+        }
         minioRepo.removeObject(bucketName, objectName);
     }
 
@@ -104,20 +107,24 @@ public class S3StorageService implements S3StorageServiceInterface {
         }
     }
 
-    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
         try {
-            List<DeleteObject> objects = new LinkedList<>();
+            List<DeleteObject> deleteObjectsList = new LinkedList<>();
             var findList = findAllObjectInFolder(bucketName, folderName, path);
+            if (findList.isEmpty()) {
+                throw new S3StorageFileNotFoundException("Folder not found");
+            }
             for (Result<Item> itemResult : findList) {
                 log.info("DeleteAllObjectInFolder :" + itemResult.get().objectName());
-                objects.add(new DeleteObject(itemResult.get().objectName()));
+
+                deleteObjectsList.add(new DeleteObject(itemResult.get().objectName()));
+                minioRepo.removeListObjects(bucketName, deleteObjectsList);
             }
-            minioRepo.removeListObjects(bucketName, objects);
-        } catch (
-                Exception e) {
+        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
+                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
+                 XmlParserException e) {
             throw new S3StorageServerException(e.getMessage());
         }
-
     }
 
     public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {

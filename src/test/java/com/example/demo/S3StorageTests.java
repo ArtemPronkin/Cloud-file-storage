@@ -80,7 +80,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void Must_ChildFolderRemoved_WhenParentFolderRemoved() throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    void Must_ChildFolderRemoved_WhenParentFolderRemoved() throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
         s3StorageService.createFolder(bucketName, "test");
         s3StorageService.createFolder(bucketName, "test/2");
         s3StorageService.createFolder(bucketName, "test/2/3");
@@ -140,7 +140,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void Must_FileAndSubFolderFound_WhenFolderWithFileUploaded() throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
+    void Must_FileAndSubFolderFound_WhenFolderWithFileUploaded() throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict, S3StorageFileNotFoundException {
         var file1 = getMultiPartFile("folder1/folder2/folder3/folder4/hello.txt");
         var file2 = getMultiPartFile("folder1/folder2/folder3/folder4/hello2.txt");
         var file3 = getMultiPartFile("folder1/folder2/folder3/folder4/hello3.txt");
@@ -169,7 +169,7 @@ public class S3StorageTests {
     }
 
     @Test
-    void Must_FilesAndFoldersNotFound_WhenParentFolderWithFileRemoved() throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
+    void Must_FilesAndFoldersNotFound_WhenParentFolderWithFileRemoved() throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict, S3StorageFileNotFoundException {
         var file1 = getMultiPartFile("folder1/folder2/folder3/folder4/hello.txt");
         var file2 = getMultiPartFile("folder1/folder2/folder3/folder4/hello2.txt");
         var file3 = getMultiPartFile("folder1/folder2/folder3/folder4/hello3.txt");

@@ -95,7 +95,7 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    public void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
         occupiedBucket(bucketName);
         try {
             super.removeObject(bucketName, objectName);
@@ -116,7 +116,7 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
+    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
         occupiedBucket(bucketName);
         try {
             super.deleteFolder(bucketName, folderName, path);

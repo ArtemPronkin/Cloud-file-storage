@@ -22,10 +22,7 @@ public class S3StorageServiceSync extends S3StorageService {
     static ConcurrentHashMap<String, Boolean> bucketInfoMap = new ConcurrentHashMap<>();
 
     private static boolean bucketIsOccupied(String bucketName) {
-        if (!bucketInfoMap.containsKey(bucketName)) {
-            bucketInfoMap.putIfAbsent(bucketName, false);
-            return false;
-        }
+        bucketInfoMap.putIfAbsent(bucketName, false);
         return bucketInfoMap.get(bucketName);
     }
 

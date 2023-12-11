@@ -1,7 +1,7 @@
-package com.example.demo.сonfig;
+package com.example.demo.config;
 
-import com.example.demo.service.S3StorageServiceInterface;
-import com.example.demo.service.S3StorageServiceSync;
+import com.example.demo.service.s3Storage.S3StorageServiceInterface;
+import com.example.demo.service.s3Storage.S3StorageServiceSync;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

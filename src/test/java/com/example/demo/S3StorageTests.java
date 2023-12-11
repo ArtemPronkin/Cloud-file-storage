@@ -4,8 +4,7 @@ import com.example.demo.exception.S3StorageFileNameConcflict;
 import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
-import com.example.demo.service.S3StorageService;
-import com.example.demo.service.S3StorageServiceInterface;
+import com.example.demo.service.s3Storage.S3StorageServiceInterface;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,8 +25,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.io.IOException;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @SpringBootTest
@@ -166,7 +164,7 @@ public class S3StorageTests {
         assertEquals(path + "folder1/",
                 s3StorageService.searchFileDTO(bucketName, "folder1").get(0).getObjectName());
 
-        assertTrue(s3StorageService.findAllObjectInFolder(bucketName, "", "").size() > 0);
+        assertFalse(s3StorageService.findAllObjectInFolder(bucketName, "", "").isEmpty());
         s3StorageService.deleteFolder(bucketName, "path/", "");
         assertEquals(0, s3StorageService.findAllObjectInFolder(bucketName, "", "").size());
     }
@@ -180,7 +178,7 @@ public class S3StorageTests {
         var path = "path/";
         s3StorageService.putFolder(bucketName, files, path);
 
-        assertTrue(s3StorageService.findAllObjectInFolder(bucketName, "", "").size() > 0);
+        assertFalse(s3StorageService.findAllObjectInFolder(bucketName, "", "").isEmpty());
         s3StorageService.deleteFolder(bucketName, "path/", "");
         assertEquals(0, s3StorageService.findAllObjectInFolder(bucketName, "", "").size());
     }

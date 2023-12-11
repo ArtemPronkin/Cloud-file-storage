@@ -1,4 +1,4 @@
-package com.example.demo.сonfig;
+package com.example.demo.config;
 
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,11 +17,11 @@ public class MinioConfig {
     @Bean
     public MinioClient generateMinioClient() {
         try {
-            MinioClient minioClient =
-                    MinioClient.builder()
-                            .endpoint(minioUrl)
-                            .credentials(accessKey, accessSecret)
-                            .build();
+            MinioClient minioClient;
+            minioClient = MinioClient.builder()
+                    .endpoint(minioUrl)
+                    .credentials(accessKey, accessSecret)
+                    .build();
             return minioClient;
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());

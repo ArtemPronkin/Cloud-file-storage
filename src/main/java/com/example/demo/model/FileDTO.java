@@ -34,6 +34,7 @@ public class FileDTO {
         if (!isDir) {
             lastModified = item.lastModified().format(DateTimeFormatter.ofPattern("dd.MM.yy HH:mm"));
         } else lastModified = "";
+
         if (isDir) {
             type = "";
         } else type = objectNameWeb.substring(objectNameWeb.lastIndexOf('.') + 1);

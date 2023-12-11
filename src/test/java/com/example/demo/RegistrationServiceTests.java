@@ -3,7 +3,7 @@ package com.example.demo;
 import com.example.demo.exception.UserUniqueEmailException;
 import com.example.demo.exception.UserUniqueUserNameException;
 import com.example.demo.model.User;
-import com.example.demo.service.RegistrationService;
+import com.example.demo.service.security.RegistrationService;
 import com.example.demo.service.security.MyUserDetailsService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

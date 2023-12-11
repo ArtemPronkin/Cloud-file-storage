@@ -5,7 +5,7 @@ import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
 import com.example.demo.model.FileDTO;
-import com.example.demo.service.S3StorageServiceInterface;
+import com.example.demo.service.s3Storage.S3StorageServiceInterface;
 import com.example.demo.service.security.MyPrincipal;
 import com.example.demo.util.PathNameUtils;
 import jakarta.servlet.http.HttpServletResponse;

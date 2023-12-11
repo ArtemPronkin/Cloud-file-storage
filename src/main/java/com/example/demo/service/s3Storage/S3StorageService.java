@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.service.s3Storage;
 
 import com.example.demo.exception.S3StorageFileNameConcflict;
 import com.example.demo.exception.S3StorageFileNotFoundException;
@@ -127,7 +127,7 @@ public class S3StorageService implements S3StorageServiceInterface {
         }
     }
 
-    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
+    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageFileNameConcflict {
         Set<String> setPath = new HashSet<>();
         for (MultipartFile multipartFile : multipartFiles) {
             fileNameCheck(bucketName, multipartFile.getOriginalFilename());
@@ -211,7 +211,7 @@ public class S3StorageService implements S3StorageServiceInterface {
 
     private void fileNameCheck(String bucketName, String fullNewPathName) throws S3StorageFileNameConcflict {
         var list = minioRepo.searchFile(bucketName, fullNewPathName);
-        for (Result<Item> itemResult : list) {
+        for (Result<Item> ignored : list) {
             log.info("Conflict name found : " + fullNewPathName);
             throw new S3StorageFileNameConcflict(fullNewPathName);
         }

@@ -1,19 +1,13 @@
-package com.example.demo.service;
+package com.example.demo.service.s3Storage;
 
 import com.example.demo.exception.S3StorageFileNameConcflict;
 import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
-import com.example.demo.model.FileDTO;
-import io.minio.Result;
-import io.minio.messages.Item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -40,27 +34,6 @@ public class S3StorageServiceSync extends S3StorageService {
             throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
         } else takeBucket(bucketName);
     }
-
-    @Override
-    public String generateStorageName(long id) {
-        return super.generateStorageName(id);
-    }
-
-    @Override
-    public ArrayList<FileDTO> searchFileDTO(String bucketName, String fileName) throws S3StorageServerException {
-        return super.searchFileDTO(bucketName, fileName);
-    }
-
-    @Override
-    public List<FileDTO> listPathObjectsDTO(String bucketName, String path) {
-        return super.listPathObjectsDTO(bucketName, path);
-    }
-
-    @Override
-    public void makeWorkDirectory(String bucketName) throws S3StorageServerException {
-        super.makeWorkDirectory(bucketName);
-    }
-
     @Override
     public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         occupiedBucket(bucketName);
@@ -101,17 +74,6 @@ public class S3StorageServiceSync extends S3StorageService {
         }
 
     }
-
-    @Override
-    public void createFolder(String bucketName, String folderName) throws S3StorageServerException {
-        super.createFolder(bucketName, folderName);
-    }
-
-    @Override
-    public List<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) throws S3StorageServerException {
-        return super.findAllObjectInFolder(bucketName, folderName, path);
-    }
-
     @Override
     public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
         occupiedBucket(bucketName);
@@ -122,14 +84,8 @@ public class S3StorageServiceSync extends S3StorageService {
         }
 
     }
-
     @Override
-    public void createFoldersForPath(String bucketName, String fullPathName) throws S3StorageServerException {
-        super.createFoldersForPath(bucketName, fullPathName);
-    }
-
-    @Override
-    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
+    public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageFileNameConcflict {
         super.putFolder(bucketName, multipartFiles, path);
     }
 

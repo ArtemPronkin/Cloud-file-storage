@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.service.s3Storage;
 
 import com.example.demo.exception.S3StorageFileNameConcflict;
 import com.example.demo.exception.S3StorageFileNotFoundException;

@@ -4,8 +4,6 @@ import com.example.demo.exception.S3StorageFileNameConcflict;
 import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
-import com.example.demo.util.PathNameUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;

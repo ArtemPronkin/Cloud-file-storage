@@ -14,9 +14,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
 public class GlobalControllerAdvice {
-    @Autowired
-    PathNameUtils pathNameUtils;
-
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(S3StorageServerException.class)
     public String S3StorageServerException() {
@@ -37,7 +34,7 @@ public class GlobalControllerAdvice {
 
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(S3StorageFileNameConcflict.class)
-    public String S3StorageFileNameConcflict(S3StorageFileNameConcflict ex, Model model) {
+    public String S3StorageFileNameConflict(S3StorageFileNameConcflict ex, Model model) {
         model.addAttribute("cause", ex.getMessage());
         return "error409";
     }

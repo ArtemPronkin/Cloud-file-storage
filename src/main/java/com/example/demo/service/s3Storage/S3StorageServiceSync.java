@@ -7,6 +7,7 @@ import com.example.demo.exception.S3StorageServerException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.InputStream;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,6 +35,7 @@ public class S3StorageServiceSync extends S3StorageService {
             throw new S3StorageResourseIsOccupiedException("Resourse Is Occupied");
         } else takeBucket(bucketName);
     }
+
     @Override
     public void putArrayObjects(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         occupiedBucket(bucketName);
@@ -74,6 +76,7 @@ public class S3StorageServiceSync extends S3StorageService {
         }
 
     }
+
     @Override
     public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
         occupiedBucket(bucketName);
@@ -84,6 +87,7 @@ public class S3StorageServiceSync extends S3StorageService {
         }
 
     }
+
     @Override
     public void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageFileNameConcflict {
         super.putFolder(bucketName, multipartFiles, path);
@@ -110,12 +114,10 @@ public class S3StorageServiceSync extends S3StorageService {
     }
 
     @Override
-    public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException {
+    public void renameFolder(String bucketName, String folderName, String folderNameNew, String path) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict {
         occupiedBucket(bucketName);
         try {
             super.renameFolder(bucketName, folderName, folderNameNew, path);
-        } catch (S3StorageFileNameConcflict e) {
-            throw new RuntimeException(e);
         } finally {
             emptyBucket(bucketName);
         }

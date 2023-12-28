@@ -1,9 +1,11 @@
-package com.example.demo.service.s3Storage;
+package com.example.demo.service.s3Storage.Sync;
 
 import com.example.demo.exception.S3StorageFileNameConcflict;
 import com.example.demo.exception.S3StorageFileNotFoundException;
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import com.example.demo.exception.S3StorageServerException;
+import com.example.demo.repository.MinioRepo;
+import com.example.demo.service.s3Storage.S3StorageService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,6 +13,10 @@ import java.io.InputStream;
 
 @Service
 public class S3StorageServiceWithSync extends S3StorageService {
+    public S3StorageServiceWithSync(MinioRepo minioRepo) {
+        super(minioRepo);
+    }
+
     @Override
     public void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
         super.removeObject(bucketName, objectName);

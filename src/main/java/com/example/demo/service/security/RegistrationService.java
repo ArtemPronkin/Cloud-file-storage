@@ -14,11 +14,19 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class RegistrationService {
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private final UserRepository userRepository;
+
+    public RegistrationService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     @Autowired
-    private UserRepository userRepository;
+    public RegistrationService(PasswordEncoder passwordEncoder, UserRepository userRepository) {
+        this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+    }
 
     public User registration(User user) throws UserUniqueUserNameException, UserUniqueEmailException {
         user.setRole(Role.ROLE_USER);

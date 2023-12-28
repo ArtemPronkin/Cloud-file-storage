@@ -9,7 +9,6 @@ import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,8 +22,12 @@ import java.util.List;
 @Slf4j
 @Repository
 public class MinioRepo {
-    @Autowired
+    final
     MinioClient minioClient;
+
+    public MinioRepo(MinioClient minioClient) {
+        this.minioClient = minioClient;
+    }
 
     public List<FileDTO> listPathObjectsDTO(String bucketName, String path) {
         return FileDTO.getFileDTOList(findObjects(bucketName, path, ""));

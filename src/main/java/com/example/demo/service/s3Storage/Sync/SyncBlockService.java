@@ -1,4 +1,4 @@
-package com.example.demo.service.s3Storage;
+package com.example.demo.service.s3Storage.Sync;
 
 import com.example.demo.exception.S3StorageResourseIsOccupiedException;
 import lombok.extern.slf4j.Slf4j;

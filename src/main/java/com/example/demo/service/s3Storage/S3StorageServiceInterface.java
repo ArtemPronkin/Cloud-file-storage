@@ -26,7 +26,7 @@ public interface S3StorageServiceInterface {
 
     void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageServerException, S3StorageResourseIsOccupiedException;
 
-    InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException;
+    InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageFileNotFoundException;
 
     void removeObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException;
 
@@ -34,11 +34,11 @@ public interface S3StorageServiceInterface {
 
     List<Result<Item>> findAllObjectInFolder(String bucketName, String folderName, String path) throws S3StorageServerException;
 
-    void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException;
+    void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageFileNotFoundException;
 
     void createFoldersForPath(String bucketName, String fullPathName) throws S3StorageServerException;
 
-    void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict;
+    void putFolder(String bucketName, MultipartFile[] multipartFiles, String path) throws S3StorageServerException, S3StorageFileNameConcflict;
 
     void transferObject(String bucketName, String objectNameSource, String folderName) throws S3StorageServerException, S3StorageFileNotFoundException, S3StorageResourseIsOccupiedException, S3StorageFileNameConcflict;
 

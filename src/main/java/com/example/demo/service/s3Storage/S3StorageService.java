@@ -11,7 +11,6 @@ import io.minio.errors.*;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,8 +23,12 @@ import java.util.*;
 @Slf4j
 @Service
 public class S3StorageService implements S3StorageServiceInterface {
-    @Autowired
+    final
     MinioRepo minioRepo;
+
+    public S3StorageService(MinioRepo minioRepo) {
+        this.minioRepo = minioRepo;
+    }
 
     public String generateStorageName(long id) {
         return "user-" + id + "-files";
@@ -64,7 +67,7 @@ public class S3StorageService implements S3StorageServiceInterface {
         minioRepo.putObject(bucketName, objectName, contentType, inputStream);
     }
 
-    public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
+    public InputStream getObject(String bucketName, String objectName) throws S3StorageServerException, S3StorageFileNotFoundException {
         return minioRepo.getObject(bucketName, objectName);
     }
 
@@ -107,7 +110,7 @@ public class S3StorageService implements S3StorageServiceInterface {
         }
     }
 
-    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
+    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageFileNotFoundException {
         try {
             List<DeleteObject> deleteObjectsList = new LinkedList<>();
             var findList = findAllObjectInFolder(bucketName, folderName, path);

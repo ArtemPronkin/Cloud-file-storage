@@ -28,13 +28,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Controller
 @RequestMapping(value = "/storage")
-public class fileStorage {
-
+public class FileStorage {
     S3StorageServiceInterface s3StorageService;
     PathNameUtils pathNameUtils;
 
     @Autowired
-    public fileStorage(@Qualifier("workStorageService") S3StorageServiceInterface s3StorageService,
+    public FileStorage(@Qualifier("workStorageService") S3StorageServiceInterface s3StorageService,
                        PathNameUtils pathNameUtils) {
         this.s3StorageService = s3StorageService;
         this.pathNameUtils = pathNameUtils;
@@ -67,12 +66,40 @@ public class fileStorage {
         return "storage";
     }
 
+    private List<FileDTO> sort(List<FileDTO> listDTO, Optional<String> sort) {
+        if (sort.isEmpty() || sort.get().equals("name")) {
+            listDTO
+                    = listDTO
+                    .stream().sorted(Comparator.comparing(p -> p.getObjectName().toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+        if (sort.isPresent() && sort.get().equals("size")) {
+            listDTO
+                    = listDTO
+                    .stream().sorted(Comparator.comparing(FileDTO::getSize))
+                    .collect(Collectors.toList());
+        }
+        if (sort.isPresent() && sort.get().equals("date")) {
+            listDTO
+                    = listDTO
+                    .stream().sorted(Comparator.comparing(FileDTO::getLastModified))
+                    .collect(Collectors.toList());
+        }
+        if (sort.isPresent() && sort.get().equals("type")) {
+            listDTO
+                    = listDTO
+                    .stream().sorted(Comparator.comparing(FileDTO::getType))
+                    .collect(Collectors.toList());
+        }
+
+        return listDTO;
+    }
+
     @GetMapping(value = "/download")
     void getFile(@AuthenticationPrincipal MyPrincipal user,
                  @RequestParam String fileName, HttpServletResponse response)
             throws
             S3StorageServerException,
-            S3StorageResourseIsOccupiedException,
             S3StorageFileNotFoundException {
 
         var file = s3StorageService.getObject(s3StorageService.generateStorageName(user.getId()), fileName);
@@ -94,8 +121,6 @@ public class fileStorage {
             S3StorageServerException,
             S3StorageResourseIsOccupiedException,
             S3StorageFileNameConcflict {
-
-        log.info("put on " + path.orElse("/"));
         s3StorageService.putArrayObjects
                 (s3StorageService.generateStorageName(user.getId()), files, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
@@ -107,10 +132,7 @@ public class fileStorage {
                      @RequestParam Optional<String> path)
             throws
             S3StorageServerException,
-            S3StorageResourseIsOccupiedException,
             S3StorageFileNameConcflict {
-
-        log.info("put on " + path.orElse("/"));
         s3StorageService.putFolder(s3StorageService.generateStorageName(user.getId()), files, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
     }
@@ -133,7 +155,7 @@ public class fileStorage {
                                  @RequestParam Optional<String> path)
             throws
             S3StorageServerException,
-            S3StorageResourseIsOccupiedException, S3StorageFileNotFoundException {
+            S3StorageFileNotFoundException {
 
         s3StorageService.deleteFolder
                 (s3StorageService.generateStorageName(user.getId()), folderName, path.orElse(""));
@@ -198,35 +220,6 @@ public class fileStorage {
                 (s3StorageService.generateStorageName(user.getId()),
                         folderName, folderNameNew, path.orElse(""));
         return "redirect:/storage?path=" + pathNameUtils.encode(path.orElse(""));
-    }
-
-    private List<FileDTO> sort(List<FileDTO> listDTO, Optional<String> sort) {
-        if (sort.isEmpty() || sort.get().equals("name")) {
-            listDTO
-                    = listDTO
-                    .stream().sorted(Comparator.comparing(p -> p.getObjectName().toLowerCase()))
-                    .collect(Collectors.toList());
-        }
-        if (sort.isPresent() && sort.get().equals("size")) {
-            listDTO
-                    = listDTO
-                    .stream().sorted(Comparator.comparing(FileDTO::getSize))
-                    .collect(Collectors.toList());
-        }
-        if (sort.isPresent() && sort.get().equals("date")) {
-            listDTO
-                    = listDTO
-                    .stream().sorted(Comparator.comparing(FileDTO::getLastModified))
-                    .collect(Collectors.toList());
-        }
-        if (sort.isPresent() && sort.get().equals("type")) {
-            listDTO
-                    = listDTO
-                    .stream().sorted(Comparator.comparing(FileDTO::getType))
-                    .collect(Collectors.toList());
-        }
-
-        return listDTO;
     }
 
 }

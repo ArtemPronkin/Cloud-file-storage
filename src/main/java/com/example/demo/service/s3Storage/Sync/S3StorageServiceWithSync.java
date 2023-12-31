@@ -51,4 +51,9 @@ public class S3StorageServiceWithSync extends S3StorageService {
     public void putObject(String bucketName, String objectName, String contentType, InputStream inputStream) throws S3StorageServerException, S3StorageResourseIsOccupiedException {
         super.putObject(bucketName, objectName, contentType, inputStream);
     }
+
+    @Override
+    public void deleteFolder(String bucketName, String folderName, String path) throws S3StorageServerException, S3StorageFileNotFoundException {
+        super.deleteFolder(bucketName, folderName, path);
+    }
 }

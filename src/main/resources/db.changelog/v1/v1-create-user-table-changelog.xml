@@ -61,4 +61,21 @@
                 tableName="users"
         />
     </changeSet>
+    <changeSet id="v1-5" author="PronkinArtem">
+        <preConditions>
+            <not>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(1)
+                    FROM users
+                    WHERE username = 'prom'
+                </sqlCheck>
+            </not>
+        </preConditions>
+        <insert tableName="users">
+            <column name="username" value="prom"/>
+            <column name="email" value="prom@prom"/>
+            <column name="password" value="$2a$12$IjZd2vazbv/DZPxD3tBHOeQscH2kUGxwC19RfuHMLkMQWTvcRuKzu"/>
+            <column name="role" value="ROLE_ADMIN"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>
